@@ -1,0 +1,41 @@
+#include <TH2.h>
+#include <TStyle.h>
+#include <TCanvas.h>
+#include <TRandom.h>
+#include <stdio.h>
+#include <TRandom3.h>
+#include "TProfile.h"
+#include "TProfile2D.h"
+#include<fstream>
+
+enum{
+  MAXTRK=100000,
+  NDET=16,
+  NHAR=4,
+  NSIDE=2,
+  NMODULE=2,
+  NGAIN=2,
+};
+
+char name[200];
+
+void plot_zdc_map(){
+  TH2F *hEta_Layer;
+  TH2F *hPixel_Energy[NSIDE+1][20];
+
+  TFile *fin;
+  fin=new TFile("../input/169927/lb_all.root","read");
+
+  hEta_Layer=(TH2F*)fin->Get("hEta_Layer");
+  for(int iside=0;iside<NSIDE+1;iside++){
+    for(int icent=0;icent<20;icent++){
+      sprintf(name,"hPixel_Energy_side%d_cent%d",iside,icent);
+      hPixel_Energy[iside][icent]=(TH2F*)fin->Get(name);
+    }
+  }
+
+
+  //Plot
+  
+  
+}

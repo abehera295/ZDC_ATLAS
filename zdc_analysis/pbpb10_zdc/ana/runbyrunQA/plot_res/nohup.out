@@ -1,0 +1,21 @@
+
+Processing draw_res.C+...
+Info in <TMacOSXSystem::ACLiC>: creating shared library /Users/arabinda/StonyBrook/pbpb10_zdc/ana/runbyrunQA/plot_res/./draw_res_C.so
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v1_0.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v1_1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v1_2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v1_3.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v1_4.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v2_0.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v2_1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v2_2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v2_3.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v2_4.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v3_0.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v3_1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v3_2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v3_3.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_1/ResCent_v3_4.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_2/ResRun_v1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_2/ResRun_v2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots_2/ResRun_v3.pdf has been created

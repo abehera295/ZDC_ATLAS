@@ -1,0 +1,68 @@
+
+Processing plotAll.C+...
+Info in <TMacOSXSystem::ACLiC>: creating shared library /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plotAll_C.so
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.cxx:17:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.h:34:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plotAll.C:5:
+/Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plot4_v1_pt.C:1:45: warning: unused parameter 'itype2' [-Wunused-parameter]
+void plot::setStyle4(TH1D *h,int itype1,int itype2){
+                                            ^
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.cxx:17:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.h:34:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plotAll.C:7:
+/Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plot6_v2_pt.C:1:45: warning: unused parameter 'itype2' [-Wunused-parameter]
+void plot::setStyle6(TH1D *h,int itype1,int itype2){
+                                            ^
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.cxx:17:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.h:34:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plotAll.C:8:
+/Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plot7_v2_pt_FCal.C:1:45: warning: unused parameter 'itype2' [-Wunused-parameter]
+void plot::setStyle7(TH1D *h,int itype1,int itype2){
+                                            ^
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.cxx:17:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.h:34:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plotAll.C:9:
+/Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plot8_v2_pt.C:1:49: warning: unused parameter 'itype2' [-Wunused-parameter]
+void plot::setStyle8(TProfile *h,int itype1,int itype2){
+                                                ^
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.cxx:17:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/plotAll_C_ACLiC_dict.h:34:
+In file included from /Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plotAll.C:10:
+/Users/arabinda/StonyBrook/pbpb10_zdc/ana/myplot/./plot9_v2_pt_comp.C:1:45: warning: unused parameter 'itype2' [-Wunused-parameter]
+void plot::setStyle9(TH1D *h,int itype1,int itype2){
+                                            ^
+5 warnings generated.
+Info in <TCanvas::Print>: pdf file ./plots/Psi1_sideC.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Psi1_sideA.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Psi1_sideA+C.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Zdc_dPsi1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_dPsi2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Psi2_sideC.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Psi2_sideA.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Psi2_sideA+C.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Zdc_dPsi2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_dPsi3.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_Res_sub_v2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Zdc_Res_sub_v1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_Res_ful_v2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Zdc_Res_ful_v1.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_Res_sub_v3.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Zdc_Res_sub_v2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_Res_ful_v3.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Zdc_Res_ful_v2.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1_eta_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1_eta_allPt.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1EvenOdd_eta_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1EvenOdd_eta_allPt.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1_pt_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1_pt_allEta.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1EvenOdd_pt_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V1EvenOdd_pt_allEta.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V2_eta_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V2_eta_allPt.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V2_pt_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/V2_pt_allEta.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_V2_pt_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_V2_pt_allEta.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/FCal_V2_pt_comp_allCent.pdf has been created
+Info in <TCanvas::Print>: pdf file ./plots/Ratio_V2_pt_comp.pdf has been created

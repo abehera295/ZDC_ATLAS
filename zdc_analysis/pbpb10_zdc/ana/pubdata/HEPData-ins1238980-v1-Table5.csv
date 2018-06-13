@@ -1,0 +1,42 @@
+#: table_doi: 10.17182/hepdata.61769.v1/t5
+#: name: Table 5
+#: description: Odd directed flow component (v1odd) relative to the spectator plane as a function of pseudorapidity.
+
+#: data_file: Table5.yaml
+#: keyword reactions: PB PB --> CHARGED X
+#: keyword observables: V1
+#: keyword phrases: Inclusive
+#: keyword cmenergies: 2760.0
+#: PT [GeV],,,0.15-20.0
+#: RE,,,PB PB --> CHARGED X
+#: CENTRALITY [pct],,,10.0-20.0
+#: SQRT(S)/NUCLEON [GeV],,,2760.0
+'ETARAP','ETARAP LOW','ETARAP HIGH','v1odd','stat +','stat -','sys +','sys -'
+-0.64,-0.8,-0.48,0.0005843,6.98e-05,-6.98e-05,9.28e-05,-9.28e-05
+-0.32,-0.48,-0.16,0.0002641,6.97e-05,-6.97e-05,5.85e-05,-5.85e-05
+0.0,-0.16,0.16,4.29e-05,7.04e-05,-7.04e-05,6.29e-05,-6.29e-05
+0.32,0.16,0.48,-0.0001414,6.97e-05,-6.97e-05,5.83e-05,-5.83e-05
+0.64,0.48,0.8,-0.0005401,6.97e-05,-6.97e-05,5.24e-05,-5.24e-05
+
+#: PT [GeV],,,0.15-20.0
+#: RE,,,PB PB --> CHARGED X
+#: CENTRALITY [pct],,,30.0-40.0
+#: SQRT(S)/NUCLEON [GeV],,,2760.0
+'ETARAP','ETARAP LOW','ETARAP HIGH','v1odd','stat +','stat -','sys +','sys -'
+-0.64,-0.8,-0.48,0.0006987,9.01e-05,-9.01e-05,0.0001219,-0.0001219
+-0.32,-0.48,-0.16,0.0002844,9e-05,-9e-05,0.0001363,-0.0001363
+0.0,-0.16,0.16,7.85e-05,9.06e-05,-9.06e-05,0.0001215,-0.0001215
+0.32,0.16,0.48,-0.0002927,9.01e-05,-9.01e-05,7.57e-05,-7.57e-05
+0.64,0.48,0.8,-0.0004101,9.01e-05,-9.01e-05,0.0001255,-0.0001255
+
+#: PT [GeV],,,0.15-20.0
+#: RE,,,PB PB --> CHARGED X
+#: CENTRALITY [pct],,,10.0-60.0
+#: SQRT(S)/NUCLEON [GeV],,,2760.0
+'ETARAP','ETARAP LOW','ETARAP HIGH','v1odd','stat +','stat -','sys +','sys -'
+-0.64,-0.8,-0.48,0.000638,4.1e-05,-4.1e-05,9.12e-05,-9.12e-05
+-0.32,-0.48,-0.16,0.0002963,4.09e-05,-4.09e-05,4.87e-05,-4.87e-05
+0.0,-0.16,0.16,-2.27e-05,4.12e-05,-4.12e-05,4.12e-05,-4.12e-05
+0.32,0.16,0.48,-0.0002381,4.09e-05,-4.09e-05,5.01e-05,-5.01e-05
+0.64,0.48,0.8,-0.0005582,4.09e-05,-4.09e-05,4.88e-05,-4.88e-05
+

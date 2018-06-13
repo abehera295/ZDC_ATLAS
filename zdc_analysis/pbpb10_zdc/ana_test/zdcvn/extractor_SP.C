@@ -1,0 +1,865 @@
+
+void extractor_flat::ReadHistos_SP() {
+  /*
+    TFile *fIn_vn=new TFile("./Output_zdc_psi.root","read");
+    for (int iside=0; iside<NSIDE+1; iside++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+    sprintf(name, "hProf_sumx_side%d_har%d", iside, ihar);
+    h_prof_sumx[iside][ihar] = (TProfile*)fIn_vn->Get(name);
+    sprintf(name, "hProf_sumy_side%d_har%d", iside, ihar);
+    h_prof_sumy[iside][ihar] = (TProfile*)fIn_vn->Get(name);
+    }
+    }
+    for (int icent=0; icent<NCENT; icent++) {
+    for (int iside=0; iside<NSIDE+1; iside++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+    sprintf(name, "hProf_flatcos_cent%d_side%d_har%d", icent, iside, ihar);
+    h_prof_flatCos[icent][iside][ihar] = (TProfile*)fIn_vn->Get(name);
+    sprintf(name, "hProf_flatsin_cent%d_side%d_har%d", icent, iside, ihar);
+    h_prof_flatSin[icent][iside][ihar] = (TProfile*)fIn_vn->Get(name);
+    }
+    }
+    }
+
+    for (int icent=0; icent<NCENT; icent++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+    sprintf(name, "h_Dphi_fg_cent%d_har%d", icent, ihar);
+    hDphi_fg[icent][ihar] = (TH1D*)fIn_vn->Get(name);
+    sprintf(name, "h_Dphi_bg_cent%d_har%d", icent, ihar);
+    hDphi_bg[icent][ihar] = (TH1D*)fIn_vn->Get(name);
+
+    sprintf(name, "h_Res_flat_cent%d_har%d", icent, ihar);
+    hRes_flat[icent][ihar] = (TH1D*)fIn_vn->Get(name);
+    }
+    }
+  */
+}
+
+void extractor_flat::Run_SP() {
+
+  int evts_min=NEv_id*NEv;
+  int evts_max=(NEv_id+1)*NEv;
+
+  Long64_t nentries = fChain->GetEntriesFast();
+  Long64_t nbytes = 0, nb = 0;
+  /*
+  for (int icent=0; icent<NCENT_1p; icent++) {
+    for (int iside=0; iside<NSIDE; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	(Psi_FCal_store[icent][iside][ihar]).assign(0,0);
+        (Psi_Zdc_store[icent][iside][ihar]).assign(0,0);
+      }
+    }
+  }
+  */
+  cout<<"Run events from "<<evts_min<<" to "<<evts_max<<endl;
+
+  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);
+
+    if (nb <=0)        {cout<<"Nbytes became <=0"<<endl;break;}
+    if(jentry<evts_min || jentry>=evts_max) continue;
+    if(jentry%10000==0) {cout<<"running event "<<jentry<<endl ;}
+    //if (jentry > 20000) break;
+    //-------------------------------------------------------------------------------------------------
+    centb = get_centb(Fcal_Et);
+    if (centb < 0) continue;
+    vzb=get_vzb(vx_z);
+    nevents++;
+    hCent->Fill(centb);
+    //FillGlobal();
+    
+    double Psi_FCal[NSIDE+1][NHAR];
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	//iside=0 is negative FCal and iside=1 is +ve FCal and iside=2 is full FCal
+	if(iside==0) {Qx_FCal[iside][ihar]=Qx[3][ihar];Qy_FCal[iside][ihar]=Qy[3][ihar];Qw_FCal[iside]=Qw[3];}
+	if(iside==1) {Qx_FCal[iside][ihar]=Qx[2][ihar];Qy_FCal[iside][ihar]=Qy[2][ihar];Qw_FCal[iside]=Qw[2];}
+	if(iside==2) {Qx_FCal[iside][ihar]=Qx[2][ihar]+Qx[3][ihar];Qy_FCal[iside][ihar]=Qy[2][ihar]+Qy[3][ihar];Qw_FCal[iside]=Qw[2]+Qw[3];}
+      }
+    }
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+        //iside=0 is negative ZDC and iside=1 is +ve ZDC and iside=2 is full ZDC
+	double psi1=atan2(Qy_zdc[iside][0],Qx_zdc[iside][0]);
+        //Qx_Zdc[iside][ihar]=Qx_zdc[iside][ihar];
+	//Qy_Zdc[iside][ihar]=Qy_zdc[iside][ihar];
+	Qx_Zdc[iside][ihar]=cos((ihar+1)*psi1);
+	Qy_Zdc[iside][ihar]=sin((ihar+1)*psi1);
+	Qw_Zdc[iside]=Qw_zdc[iside];
+      }
+    }
+    GetTrackQn_SP();
+    FillHisto_SP(jentry);
+
+    /*
+      for (int ihar=0; ihar<NHAR; ihar++) {
+      //Psi Store creation 
+      int str_size0 = (Psi_FCal_store[centb_1p][0][ihar]).size();
+      int str_size1 = (Psi_FCal_store[centb_1p][1][ihar]).size();
+      if(str_size0>0){
+      for (int isiz=0; isiz<str_size0; isiz++) {
+      //dPsi = (ihar+1)*( Psi_FCal.at(0).at(ihar) - (Psi_store[centb_1p][1][ihar]).at(isiz) );
+      dPsi_FCal = (ihar+2)*( Psi_FCal[1][ihar] - (Psi_FCal_store[centb_1p][0][ihar]).at(isiz) );
+      if (dPsi_FCal < -PI) dPsi_FCal += 2*PI;
+      if (dPsi_FCal >  PI) dPsi_FCal -= 2*PI;
+      hDphi_FCal_bg[centb][ihar]->Fill(dPsi_FCal);
+      }
+      }
+      if(str_size1>0){
+      for (int isiz=0; isiz<str_size1; isiz++) {
+      dPsi_FCal = (ihar+2)*( Psi_FCal[0][ihar] - (Psi_FCal_store[centb_1p][1][ihar]).at(isiz) );
+      if (dPsi_FCal < -PI) dPsi_FCal += 2*PI;
+      if (dPsi_FCal >  PI) dPsi_FCal -= 2*PI;
+      hDphi_FCal_bg[centb][ihar]->Fill(-dPsi_FCal);
+      }
+      }
+      int str_size2 = (Psi_Zdc_store[centb_1p][0][ihar]).size();
+      int str_size3 = (Psi_Zdc_store[centb_1p][1][ihar]).size();
+      if(str_size2>0){
+      for (int isiz=0; isiz<str_size2; isiz++) {
+      //dPsi = (ihar+1)*( Psi_Zdc.at(0).at(ihar) - (Psi_store[centb_1p][1][ihar]).at(isiz) );
+      dPsi_Zdc = (ihar+1)*( Psi_Zdc[1][ihar] - (Psi_Zdc_store[centb_1p][0][ihar]).at(isiz) );
+      if (dPsi_Zdc < -PI) dPsi_Zdc += 2*PI;
+      if (dPsi_Zdc >  PI) dPsi_Zdc -= 2*PI;
+      hDphi_Zdc_bg[centb][ihar]->Fill(dPsi_Zdc);
+      }
+      }
+      if(str_size3>0){
+      for (int isiz=0; isiz<str_size3; isiz++) {
+      dPsi_Zdc = (ihar+1)*( Psi_Zdc[0][ihar] - (Psi_Zdc_store[centb_1p][1][ihar]).at(isiz) );
+      if (dPsi_Zdc < -PI) dPsi_Zdc += 2*PI;
+      if (dPsi_Zdc >  PI) dPsi_Zdc -= 2*PI;
+      hDphi_Zdc_bg[centb][ihar]->Fill(-dPsi_Zdc);
+      }
+      }
+      }
+
+      FillTrackVn(Psi_FCal,Psi_Zdc);
+      //Fill store for Psi background
+      for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+      (Psi_FCal_store[centb_1p][iside][ihar]).push_back(Psi_FCal[iside][ihar]);
+      (Psi_Zdc_store[centb_1p][iside][ihar]).push_back(Psi_Zdc[iside][ihar]);
+      if ((Psi_FCal_store[centb_1p][iside][ihar]).size() >= STORE_DEP) (Psi_FCal_store[centb_1p][iside][ihar]).erase((Psi_FCal_store[centb_1p][iside][ihar]).begin());
+      if ((Psi_Zdc_store[centb_1p][iside][ihar]).size() >= STORE_DEP) (Psi_Zdc_store[centb_1p][iside][ihar]).erase((Psi_Zdc_store[centb_1p][iside][ihar]).begin());
+      }
+      }
+    */
+  }//Event Loop ends
+  cout<<"Finished ana"<<endl;
+}
+
+
+void extractor_flat::GetTrackQn_SP(){
+  ntrkQ = 0;
+  memset(Qx_ID,0,sizeof(Qx_ID));
+  memset(Qy_ID,0,sizeof(Qy_ID));
+  memset(Qw_ID,0,sizeof(Qw_ID));
+  for(int itrk=0; itrk<trk_n; itrk++){
+    //if(trk_Quality2[itrk] < 3) continue;
+  
+      
+    //new data format
+    UInt_t trkb = trk_data[itrk];
+    double btmp=0;
+    trk_phi0_wrt_PV[itrk]  = trkb&PHIM;// btmp  = trk_phi0_wrt_PV[itrk];
+    trk_phi0_wrt_PV[itrk]+=0.5;   trk_phi0_wrt_PV[itrk] *= PIslice;     trkb >>= PHIS;
+    //trk_phibin[itrk] = btmp/(512)*NPHI; trk_phibin[itrk]++;
+
+    trk_eta[itrk]  = trkb&ETAM; btmp  = trk_eta[itrk];
+    trk_eta[itrk]+=0.5;   trk_eta[itrk] *= ETAslice;   trk_eta[itrk] -=ETAoff;  trkb >>= ETAS;
+    //trk_etabin[itrk] = btmp/(500.0)*NETA; trk_etabin[itrk]++;
+
+    trk_charge[itrk]= trkb&CHM;       trkb >>= CHS;
+    trk_pt[itrk]=get_pt(trkb&PTM);
+    //trk_ptbin[itrk] = getptbin(trkb&PTM);
+    trkb >>= PTS;
+    //trk_ptbin[itrk] = get_ptbin2(trk_pt[itrk]);
+    trk_Quality2[itrk]  = trkb&QUALM;
+    //trk_w[itrk]  = trkb&QUALM;
+
+    //double ptgev = trk_pt[itrk]/1000.0;
+    double ptgev=trk_pt[itrk];
+    int ptBin  = get_ptBin(ptgev);       if (ptBin  < 0) continue;
+    int etaBin = get_etaBin(trk_eta[itrk]); if (etaBin < 0) continue;
+    int sign_eta = 1;
+    if (trk_eta[itrk] < 0) sign_eta = -1;
+    
+    trk_wei[itrk] = 1.;
+    trk_eff[itrk]=1.;
+    trk_wei[itrk]= 1./(fabs(trk_w[itrk])/256.0 * 1.4+0.3);//0.3-1.7;
+    //trk_wei[itrk] = 1.;
+    trk_eff[itrk]=1./effTool->detTrkEff(Centrality,trk_eta[itrk],trk_pt[itrk]);//Trk Efficiency from Tool.cxx
+    trk_phi[itrk]=trk_phi0_wrt_PV[itrk];
+    hEta->Fill(trk_eta[itrk]);
+    hPhi->Fill(trk_phi[itrk]);
+    hPhi_wei->Fill(trk_phi[itrk],trk_wei[itrk]);
+    hPt->Fill(ptgev);
+    hTrk_w->Fill(trk_w[itrk]);
+    hTrk_wei->Fill(trk_wei[itrk]);
+    hTrk_eff2[centb][ptBin]->Fill(trk_eta[itrk],trk_eff[itrk]);
+    hTrk_eff->Fill(trk_eff[itrk]);
+    //hEtaPhi->Fill(trk_eta[itrk],trk_phi[itrk]);
+    //hEtaPhi_wei->Fill(trk_eta[itrk],trk_phi[itrk],trk_eff[itrk]);
+    //Apply trk_eff;
+    trk_wei[itrk]/=trk_eff[itrk];
+
+    int ipt=ptBin;
+    int iside=0,ich=0,ieta=0;
+    if(trk_eta[itrk]<0.) iside=0;
+    else iside=1;
+    if(trk_charge[itrk]==0) ich=0;
+    else ich=1;
+    for(int i=0;i<NETA2;i++){
+      double deta=0.+(i+1)*(2.5/NETA2);
+      if(fabs(trk_eta[itrk])>deta-0.25 && fabs(trk_eta[itrk])<=deta) {ieta=i; break;}
+    }
+    hMean_pt[centb][ich][iside]->Fill(ipt,trk_pt[itrk],trk_wei[itrk]);
+    hMean_pt[centb][NCH][iside]->Fill(ipt,trk_pt[itrk],trk_wei[itrk]);
+    hMean_pt[centb][ich][NSIDE]->Fill(ipt,trk_pt[itrk],trk_wei[itrk]);
+    hMean_pt[centb][NCH][NSIDE]->Fill(ipt,trk_pt[itrk],trk_wei[itrk]);
+    
+    hMean_eta[centb][ich][iside]->Fill(ieta,trk_eta[itrk],trk_wei[itrk]);
+    hMean_eta[centb][NCH][iside]->Fill(ieta,trk_eta[itrk],trk_wei[itrk]);
+    hMean_eta[centb][ich][NSIDE]->Fill(ieta,trk_eta[itrk],trk_wei[itrk]);
+    hMean_eta[centb][NCH][NSIDE]->Fill(ieta,trk_eta[itrk],trk_wei[itrk]);
+
+    for(int ihar=0;ihar<NHAR;ihar++){
+      Qx_ID[ich][ipt][iside][ieta][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[ich][NPT][iside][ieta][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[ich][NPT][NSIDE][ieta][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[ich][ipt][iside][NETA2][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[ich][ipt][NSIDE][NETA2][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[NCH][ipt][iside][NETA2][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[NCH][NPT][iside][ieta][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[NCH][ipt][NSIDE][NETA2][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qx_ID[NCH][NPT][NSIDE][NETA2][ihar] += cos(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      
+      Qy_ID[ich][ipt][iside][ieta][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[ich][NPT][iside][ieta][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[ich][NPT][NSIDE][ieta][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[ich][ipt][iside][NETA2][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[ich][ipt][NSIDE][NETA2][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[NCH][ipt][iside][NETA2][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[NCH][NPT][iside][ieta][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[NCH][ipt][NSIDE][NETA2][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      Qy_ID[NCH][NPT][NSIDE][NETA2][ihar] += sin(trk_phi[itrk]*(ihar+1))*trk_wei[itrk];
+      if(ihar==0){
+	Qw_ID[ich][ipt][iside][ieta] += trk_wei[itrk];
+	Qw_ID[ich][NPT][iside][ieta] += trk_wei[itrk];
+	Qw_ID[ich][NPT][NSIDE][ieta] += trk_wei[itrk];
+	Qw_ID[ich][ipt][iside][NETA2] += trk_wei[itrk];
+	Qw_ID[ich][ipt][NSIDE][NETA2] += trk_wei[itrk];
+	Qw_ID[NCH][ipt][iside][NETA2] += trk_wei[itrk];
+	Qw_ID[NCH][NPT][iside][ieta] += trk_wei[itrk];
+	Qw_ID[NCH][ipt][NSIDE][NETA2] += trk_wei[itrk];
+	Qw_ID[NCH][NPT][NSIDE][NETA2] += trk_wei[itrk];
+      }
+    }
+    
+    ntrkQ++;
+  }//Track loop ends
+  hNTrk->Fill(ntrkQ);
+}
+
+void extractor_flat::FillHisto_SP(int id0){
+
+  EVENT_PTR ev = new Event(id0);
+  ev->icent = centb;
+  ev->ivz = vzb;
+  for(int ihar=0;ihar<NHAR;ihar++){
+    for(int iside=0;iside<NSIDE+1;iside++){
+      if(Qw_FCal[iside]!=0.) Qx_FCal[iside][ihar]/=Qw_FCal[iside]; else Qx_FCal[iside][ihar]=0.;
+      if(Qw_FCal[iside]!=0.) Qy_FCal[iside][ihar]/=Qw_FCal[iside]; else Qy_FCal[iside][ihar]=0.;
+      if(Qw_Zdc[iside]!=0.) Qx_Zdc[iside][ihar]/=Qw_Zdc[iside]; else Qx_Zdc[iside][ihar]=0.;
+      if(Qw_Zdc[iside]!=0.) Qy_Zdc[iside][ihar]/=Qw_Zdc[iside]; else Qy_Zdc[iside][ihar]=0.;
+      ev->Qx_FCal[iside][ihar] = Qx_FCal[iside][ihar];
+      ev->Qy_FCal[iside][ihar] = Qy_FCal[iside][ihar];
+      if(ihar==0) ev->Qw_FCal[iside] = Qw_FCal[iside];
+      ev->Qx_Zdc[iside][ihar] = Qx_Zdc[iside][ihar];
+      ev->Qy_Zdc[iside][ihar] = Qy_Zdc[iside][ihar];
+      if(ihar==0) ev->Qw_Zdc[iside] = Qw_Zdc[iside];
+
+      for(int ich=0;ich<NCH+1;ich++){
+	for(int ipt=0;ipt<NPT+1;ipt++){
+	  for(int ieta=0;ieta<NETA2+1;ieta++){
+	    if(Qw_ID[ich][ipt][iside][ieta]!=0.) Qx_ID[ich][ipt][iside][ieta][ihar]/=Qw_ID[ich][ipt][iside][ieta]; else Qx_ID[ich][ipt][iside][ieta][ihar]=0.;
+	    if(Qw_ID[ich][ipt][iside][ieta]!=0.) Qy_ID[ich][ipt][iside][ieta][ihar]/=Qw_ID[ich][ipt][iside][ieta]; else Qy_ID[ich][ipt][iside][ieta][ihar]=0.;
+	    ev->Qx_ID[ich][ipt][iside][ieta][ihar] = Qx_ID[ich][ipt][iside][ieta][ihar];
+	    ev->Qy_ID[ich][ipt][iside][ieta][ihar] = Qy_ID[ich][ipt][iside][ieta][ihar];
+	    if(ihar==0) ev->Qw_ID[ich][ipt][iside][ieta] = Qw_ID[ich][ipt][iside][ieta];
+	  }//ich
+	}//ieta
+      }//ipt
+    }//iside ends
+  }//ihar ends
+  /*
+    TComplex q1,q2,q1c,q2c,qtmp;
+    double qw1,qw2,ev_wei;
+    double cos112,cos123,cosvn;
+    int iside1,iside2,iside3;
+    int ich;
+    for(int ihar=0;ihar<1;ihar++){
+    for(int ipt=0;ipt<NPT;ipt++){
+    q1=TComplex(Qx_ID[NCH][ipt][0][NETA2][ihar+1],Qy_ID[NCH][ipt][0][NETA2][ihar+1]);
+    q2=TComplex(Qx_ID[NCH][ipt][1][NETA2][ihar+1],Qy_ID[NCH][ipt][1][NETA2][ihar+1]);
+    q2c=TComplex::Conjugate(q2);
+    qw1=Qw_ID[NCH][ipt][0][NETA2];
+    qw2=Qw_ID[NCH][ipt][1][NETA2];
+    qtmp = q1*q2c;
+    ev_wei = qw1*qw2;
+    cosvn=sqrt(qtmp.Re());
+    if(ev_wei!=0.) hVn_FCal_pt_fg[centb][ihar]->Fill(ipt,cosvn);
+    }
+    }
+  */
+  Fill_2PCfg_SP(ev,ev);
+  //Fill_3PCfg_SP(ev,ev,ev);
+  delete ev;
+}
+
+void extractor_flat::Fill_2PCfg_SP(Event* ev1, Event *ev2){
+  //My code
+  TComplex q1_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1][NHAR],q1c_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1][NHAR];
+  double qw1_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1];
+
+  TComplex q2_FCal[NSIDE+1][NHAR],q2c_FCal[NSIDE+1][NHAR];
+  TComplex q2_Zdc[NSIDE+1][NHAR],q2c_Zdc[NSIDE+1][NHAR];
+  double qw2_FCal[NSIDE+1];
+  double qw2_Zdc[NSIDE+1];
+
+  int icent=ev1->icent;
+  for(int ihar=0;ihar<NHAR;ihar++){
+    for(int iside=0;iside<NSIDE+1;iside++){
+      q2_FCal[iside][ihar]=TComplex(ev2->Qx_FCal[iside][ihar],ev2->Qy_FCal[iside][ihar]);
+      q2c_FCal[iside][ihar]=TComplex::Conjugate(q2_FCal[iside][ihar]);
+      if(ihar==0) qw2_FCal[iside]=ev2->Qw_FCal[iside];
+      q2_Zdc[iside][ihar]=TComplex(ev2->Qx_Zdc[iside][ihar],ev2->Qy_Zdc[iside][ihar]);
+      q2c_Zdc[iside][ihar]=TComplex::Conjugate(q2_Zdc[iside][ihar]);
+      if(ihar==0) qw2_Zdc[iside]=ev2->Qw_Zdc[iside];
+      for(int ich=0;ich<NCH+1;ich++){
+	for(int ipt=0;ipt<NPT+1;ipt++){
+	  for(int ieta=0;ieta<NETA2+1;ieta++){
+	    q1_ID[ich][ipt][iside][ieta][ihar]=TComplex(ev1->Qx_ID[ich][ipt][iside][ieta][ihar],ev1->Qy_ID[ich][ipt][iside][ieta][ihar]);
+	    q1c_ID[ich][ipt][iside][ieta][ihar]=TComplex::Conjugate(q1_ID[ich][ipt][iside][ieta][ihar]);
+	    if(ihar==0) qw1_ID[ich][ipt][iside][ieta]=ev1->Qw_ID[ich][ipt][iside][ieta];
+	  }
+	}
+      }
+    }
+  }
+
+  //Calculate 2PC vn
+  TComplex qtmp;
+  double ev_wei;
+  double cos112,cos123,cosvn;
+  int iside1,iside2,iside3;
+  int ich;
+  //Using FCal
+  for(int ihar=0;ihar<NHAR-1;ihar++){
+    for(int iside=0;iside<NSIDE+1;iside++){
+      //As a function of pt
+      for(int ipt=0;ipt<NPT;ipt++){
+	ich=NCH;
+	iside1=NSIDE,iside2=iside;
+	qtmp = q1_ID[ich][ipt][iside1][NETA2][ihar+1]*q2c_FCal[iside2][ihar];//FCal has v2,v3,v4,v5 and Inner det has v1,v2,v3,v4
+	ev_wei = qw1_ID[ich][ipt][iside1][NETA2]*qw2_FCal[iside2];
+	//qtmp = q1_ID[ich][ipt][0][NETA2][ihar+1]*q1c_ID[ich][ipt][1][NETA2][ihar+1];
+	//ev_wei = qw1_ID[ich][ipt][0][NETA2]*qw1_ID[ich][ipt][1][NETA2];
+	cosvn=qtmp.Re();
+	if(ev_wei!=0.) hVn_FCal_pt_fg[icent][iside][ihar]->Fill(ipt,cosvn,ev_wei);
+      }
+      //As a function of eta
+      for(int ieta=0;ieta<NETA2;ieta++){
+	int ieta2=NETA-1-ieta;
+	ich=NCH;
+	iside1=0,iside2=iside;
+	qtmp = q1_ID[ich][NPT][iside1][ieta][ihar+1]*q2c_FCal[iside2][ihar];//FCal has v2,v3,v4,v5 and Inner det has v1,v2,v3,v4
+	ev_wei = qw1_ID[ich][NPT][iside1][ieta]*qw2_FCal[iside2];
+	cosvn=qtmp.Re();
+	//cosvn=sqrt(fabs(qtmp.Re()))*qtmp.Re()/fabs(qtmp.Re());
+	if(ev_wei!=0.) hVn_FCal_eta_fg[icent][iside][ihar]->Fill(ieta2,cosvn,ev_wei);
+
+	ieta2=NETA2+ieta;
+	ich=NCH;
+	iside1=1,iside2=iside;
+	qtmp = q1_ID[ich][NPT][iside1][ieta][ihar+1]*q2c_FCal[iside2][ihar];//FCal has v2,v3,v4,v5 and Inner det has v1,v2,v3,v4
+	ev_wei = qw1_ID[ich][NPT][iside1][ieta]*qw2_FCal[iside2];
+	//cosvn=qtmp.Re();
+	cosvn=sqrt(fabs(qtmp.Re()))*qtmp.Re()/fabs(qtmp.Re());
+	if(ev_wei!=0.) hVn_FCal_eta_fg[icent][iside][ihar]->Fill(ieta2,cosvn,ev_wei);
+      }
+      //As a function of centrality
+      ich=NCH;
+      iside1=NSIDE,iside2=iside;
+      qtmp = q1_ID[ich][NPT][iside1][NETA2][ihar+1]*q2c_FCal[iside2][ihar];//FCal has v2,v3,v4,v5 and Inner det has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich][NPT][iside1][NETA2]*qw2_FCal[iside2];
+      cosvn=qtmp.Re();
+      //cosvn=sqrt(fabs(qtmp.Re()))*qtmp.Re()/fabs(qtmp.Re());
+      if(ev_wei!=0.) hVn_FCal_cent_fg[iside][ihar]->Fill(icent,cosvn,ev_wei);
+    }//iside
+    qtmp=q2_FCal[0][ihar]*q2c_FCal[1][ihar];
+    hRes_FCal_fg[ihar]->Fill(icent,qtmp.Re());
+  }
+  
+  //Using Zdc
+  for(int ihar=0;ihar<NHAR-1;ihar++){
+    for(int iside=0;iside<NSIDE+1;iside++){
+      //As a function of pt
+      for(int ipt=0;ipt<NPT;ipt++){
+	ich=NCH;
+	iside1=NSIDE,iside2=iside;
+	qtmp = q1_ID[ich][ipt][iside1][NETA2][ihar]*q2c_Zdc[iside2][ihar];//Zdc has v1,v2,v3,v4 and Inner det has v1,v2,v3,v4
+	ev_wei = qw1_ID[ich][ipt][iside1][NETA2]*qw2_Zdc[iside2];
+	//qtmp = q1_ID[ich][ipt][0][NETA2][ihar+1]*q1c_ID[ich][ipt][1][NETA2][ihar+1];
+	//ev_wei = qw1_ID[ich][ipt][0][NETA2]*qw1_ID[ich][ipt][1][NETA2];
+	cosvn=qtmp.Re();
+	if(ev_wei!=0.) hVn_Zdc_pt_fg[icent][iside][ihar]->Fill(ipt,cosvn,ev_wei);
+      }
+      //As a function of eta
+      for(int ieta=0;ieta<NETA2;ieta++){
+	int ieta2=NETA-1-ieta;
+	ich=NCH;
+	iside1=0,iside2=iside;
+	qtmp = q1_ID[ich][NPT][iside1][ieta][ihar]*q2c_Zdc[iside2][ihar];//Zdc has v1,v2,v3,v4 and Inner det has v1,v2,v3,v4
+	ev_wei = qw1_ID[ich][NPT][iside1][ieta]*qw2_Zdc[iside2];
+	cosvn=qtmp.Re();
+	//cosvn=sqrt(fabs(qtmp.Re()))*qtmp.Re()/fabs(qtmp.Re());
+	if(ev_wei!=0.) hVn_Zdc_eta_fg[icent][iside][ihar]->Fill(ieta2,cosvn,ev_wei);
+
+	ieta2=NETA2+ieta;
+	ich=NCH;
+	iside1=1,iside2=iside;
+	qtmp = q1_ID[ich][NPT][iside1][ieta][ihar]*q2c_Zdc[iside2][ihar];//Zdc has v1,v2,v3,v4 and Inner det has v1,v2,v3,v4
+	ev_wei = qw1_ID[ich][NPT][iside1][ieta]*qw2_Zdc[iside2];
+	//cosvn=qtmp.Re();
+	cosvn=sqrt(fabs(qtmp.Re()))*qtmp.Re()/fabs(qtmp.Re());
+	if(ev_wei!=0.) hVn_Zdc_eta_fg[icent][iside][ihar]->Fill(ieta2,cosvn,ev_wei);
+      }
+      //As a function of centrality
+      ich=NCH;
+      iside1=NSIDE,iside2=iside;
+      qtmp = q1_ID[ich][NPT][iside1][NETA2][ihar]*q2c_Zdc[iside2][ihar];//FCal has v2,v3,v4,v5 and Inner det has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich][NPT][iside1][NETA2]*qw2_Zdc[iside2];
+      cosvn=qtmp.Re();
+      //cosvn=sqrt(fabs(qtmp.Re()))*qtmp.Re()/fabs(qtmp.Re());
+      if(ev_wei!=0.) hVn_Zdc_cent_fg[iside][ihar]->Fill(icent,cosvn,ev_wei);
+    }//iside
+    qtmp=q2_Zdc[0][ihar]*q2c_Zdc[1][ihar];
+    hRes_Zdc_fg[ihar]->Fill(icent,qtmp.Re());
+  }
+  
+  
+}
+
+void extractor_flat::Fill_3PCfg_SP(Event* ev1, Event *ev2, Event *ev3){
+  //My code
+  TComplex q1_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1][NHAR],q1c_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1][NHAR];
+  TComplex q2_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1][NHAR],q2c_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1][NHAR];
+  double qw1_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1],qw2_ID[NCH+1][NPT+1][NSIDE+1][NETA2+1];
+
+  TComplex q3_FCal[NSIDE+1][NHAR],q3c_FCal[NSIDE+1][NHAR];
+  TComplex q3_Zdc[NSIDE+1][NHAR],q3c_Zdc[NSIDE+1][NHAR];
+  double qw3_FCal[NSIDE+1],qw3_Zdc[NSIDE+1];
+
+  int icent=ev1->icent;
+  for(int ihar=0;ihar<NHAR;ihar++){
+    for(int iside=0;iside<NSIDE+1;iside++){
+      q3_FCal[iside][ihar]=TComplex(ev3->Qx_FCal[iside][ihar],ev3->Qy_FCal[iside][ihar]);
+      q3c_FCal[iside][ihar]=TComplex::Conjugate(q3_FCal[iside][ihar]);
+      if(ihar==0) qw3_FCal[iside]=ev3->Qw_FCal[iside];
+      q3_Zdc[iside][ihar]=TComplex(ev3->Qx_Zdc[iside][ihar],ev3->Qy_Zdc[iside][ihar]);
+      q3c_Zdc[iside][ihar]=TComplex::Conjugate(q3_Zdc[iside][ihar]);
+      if(ihar==0) qw3_Zdc[iside]=ev3->Qw_Zdc[iside];
+      for(int ich=0;ich<NCH+1;ich++){
+	for(int ipt=0;ipt<NPT+1;ipt++){
+	  for(int ieta=0;ieta<NETA2+1;ieta++){
+	    q1_ID[ich][ipt][iside][ieta][ihar]=TComplex(ev1->Qx_ID[ich][ipt][iside][ieta][ihar],ev1->Qy_ID[ich][ipt][iside][ieta][ihar]);
+	    q1c_ID[ich][ipt][iside][ieta][ihar]=TComplex::Conjugate(q1_ID[ich][ipt][iside][ieta][ihar]);
+	    if(ihar==0) qw1_ID[ich][ipt][iside][ieta]=ev1->Qw_ID[ich][ipt][iside][ieta];
+	  
+	    q2_ID[ich][ipt][iside][ieta][ihar]=TComplex(ev2->Qx_ID[ich][ipt][iside][ieta][ihar],ev2->Qy_ID[ich][ipt][iside][ieta][ihar]);
+	    q2c_ID[ich][ipt][iside][ieta][ihar]=TComplex::Conjugate(q2_ID[ich][ipt][iside][ieta][ihar]);
+	    if(ihar==0) qw2_ID[ich][ipt][iside][ieta]=ev2->Qw_ID[ich][ipt][iside][ieta];
+	  }
+	}
+      }
+    }
+  }
+
+  //Calculate 3PC C112
+  TComplex qtmp;
+  double ev_wei;
+  double cos112,cos123,cosvn;
+  int iside1,iside2,iside3;
+  int ihar1,ihar2,ihar3;
+  int ich1,ich2;
+  //Using FCal
+  //As a function of pt1 and pt2
+  for(int ipt1=0;ipt1<NPT;ipt1++){
+    for(int ipt2=0;ipt2<NPT;ipt2++){
+      //Same Charge
+      ich1=0,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_pt_same_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+
+      ich1=1,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_pt_same_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+
+      //Opposite Charge
+      ich1=0,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_pt_opp_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+
+      ich1=1,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_pt_opp_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+    }//ipt2
+  }//ipt1
+
+  //As a function of eta1 and eta2
+  for(int ieta1=0;ieta1<NETA2;ieta1++){
+    for(int ieta2=0;ieta2<NETA2;ieta2++){
+      //Same Charge
+      ich1=0,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_eta_same_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+
+      ich1=1,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_eta_same_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+
+      //Opposite Charge
+      ich1=0,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_eta_opp_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+
+      ich1=1,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=0;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_FCal[iside3][ihar3];//FCal has v2,v3,v4,v5
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_FCal[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_FCal_eta_opp_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+    }//ieta2
+  }//ieta1
+
+  //Using Zdc
+  //As a function of pt1 and pt2
+  for(int ipt1=0;ipt1<NPT;ipt1++){
+    for(int ipt2=0;ipt2<NPT;ipt2++){
+      //Same Charge
+      ich1=0,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_pt_same_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+
+      ich1=1,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_pt_same_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+
+      //Opposite Charge
+      ich1=0,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_pt_opp_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+
+      ich1=1,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][ipt1][iside1][NETA2][ihar1]*q2_ID[ich2][ipt2][iside2][NETA2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][ipt1][iside1][NETA2]*qw2_ID[ich2][ipt2][iside2][NETA2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_pt_opp_fg[icent]->Fill(ipt1,ipt2,cos112,ev_wei);
+    }//ipt2
+  }//ipt1
+
+  //As a function of eta1 and eta2
+  for(int ieta1=0;ieta1<NETA2;ieta1++){
+    for(int ieta2=0;ieta2<NETA2;ieta2++){
+      //Same Charge
+      ich1=0,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_eta_same_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+
+      ich1=1,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_eta_same_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+
+      //Opposite Charge
+      ich1=0,ich2=1;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_eta_opp_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+
+      ich1=1,ich2=0;
+      iside1=0,iside2=1,iside3=2;
+      ihar1=0,ihar2=0,ihar3=1;
+      qtmp = q1_ID[ich1][NPT][iside1][ieta1][ihar1]*q2_ID[ich2][NPT][iside2][ieta2][ihar2]*q3c_Zdc[iside3][ihar3];//Zdc has v1,v2,v3,v4
+      ev_wei = qw1_ID[ich1][NPT][iside1][ieta1]*qw2_ID[ich2][NPT][iside2][ieta2]*qw3_Zdc[iside3];
+      cos112=qtmp.Re();
+      if(ev_wei!=0.) hC112_Zdc_eta_opp_fg[icent]->Fill(ieta1,ieta2,cos112,ev_wei);
+    }//ieta2
+  }//ieta1
+
+}
+
+void extractor_flat::Init_SP() {
+  //set_ptBins ();
+  //set_etaBins();
+  
+  hEt      = new TH1D("hEt", "", 5000, 0, 5000); hEt->Sumw2();
+  hNtrk    = new TH1D("hNtrk", "", 5000, 0, 5000); hNtrk->Sumw2();
+  hEt_ntrk = new TH2F("h_et_ntrk", "", 400, 0, 4000, 400, 0, 4000); hEt_ntrk->Sumw2();
+  //Track histograms
+  hNTrk    = new TH1D("hNTrk", "", 5000, 0, 5000); hNtrk->Sumw2();
+  hCent    = new TH1D("hCent", "", NCENT, -0.5, NCENT-0.5); hCent->Sumw2();
+  hPt = new TH1D("hPt","",1000,0.,25.); hPt->Sumw2();
+  hPhi = new TH1D("hPhi","",50,0.,7); hPhi->Sumw2();
+  hPhi_wei = new TH1D("hPhi_wei","",50,0.,7.); hPhi_wei->Sumw2();
+  hEta = new TH1D("hEta","",100,-2.5,2.5); hEta->Sumw2();
+  hTrk_w = new TH1D("hTrk_w","",1000,-300.,300.); hTrk_w->Sumw2();
+  hTrk_wei = new TH1D("hTrk_wei","",1000,-5.,5.); hTrk_wei->Sumw2();
+  for(int icent=0;icent<NCENT;icent++){
+    for(int ipt=0;ipt<NPT;ipt++){
+      sprintf(name,"hTrk_eff2_cent%d_pt%d",icent,ipt);
+      hTrk_eff2[icent][ipt]=new TProfile(name,"",50,-2.5,2.5);
+      hTrk_eff2[icent][ipt]->Sumw2();
+    }
+  }
+  hTrk_eff=new TH1D("hTrk_eff","",200,-2.,2.); hTrk_eff->Sumw2();
+
+  //Mean pt and eta distributions
+  for(int icent=0;icent<NCENT;icent++){
+    for(int ich=0;ich<NCH+1;ich++){
+      for(int iside=0;iside<NSIDE+1;iside++){
+	sprintf(name,"hMean_pt_cent%d_ch%d_side%d",icent,ich,iside);
+	hMean_pt[icent][ich][iside]=new TProfile(name,"",NPT,0.-0.5,NPT-0.5);
+	sprintf(name,"hMean_eta_cent%d_ch%d_side%d",icent,ich,iside);
+	hMean_eta[icent][ich][iside]=new TProfile(name,"",NETA2,0.-0.5,NETA2-0.5);
+      }
+    }
+  }
+  //2PC resolution
+  for(int ihar=0;ihar<NHAR;ihar++){
+    sprintf(name,"hRes_FCal_fg_har%d",ihar);
+    hRes_FCal_fg[ihar]=new TProfile(name,"",NCENT,0.-0.5,NCENT-0.5);
+    sprintf(name,"hRes_Zdc_fg_har%d",ihar);
+    hRes_Zdc_fg[ihar]=new TProfile(name,"",NCENT,0.-0.5,NCENT-0.5);
+
+    sprintf(name,"hRes_FCal_bg_har%d",ihar);
+    hRes_FCal_bg[ihar]=new TProfile(name,"",NCENT,0.-0.5,NCENT-0.5);
+    sprintf(name,"hRes_Zdc_bg_har%d",ihar);
+    hRes_Zdc_bg[ihar]=new TProfile(name,"",NCENT,0.-0.5,NCENT-0.5);
+  }
+  //2PC Correlation hists
+  for(int iside=0;iside<NSIDE+1;iside++){
+    for(int ihar=0;ihar<NHAR;ihar++){
+      sprintf(name,"hVn_FCal_cent_fg_side%d_har%d",iside,ihar);
+      hVn_FCal_cent_fg[iside][ihar]=new TProfile(name,"",NCENT,0.-0.5,NCENT-0.5);
+      sprintf(name,"hVn_Zdc_cent_fg_side%d_har%d",iside,ihar);
+      hVn_Zdc_cent_fg[iside][ihar]=new TProfile(name,"",NCENT,0.-0.5,NCENT-0.5);
+      for(int icent=0;icent<NCENT;icent++){
+	//FCal
+	sprintf(name,"hVn_FCal_pt_fg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_FCal_pt_fg[icent][iside][ihar]=new TProfile(name,"",NPT,0.-0.5,NPT-0.5);
+	sprintf(name,"hVn_FCal_eta_fg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_FCal_eta_fg[icent][iside][ihar]=new TProfile(name,"",2*NETA2,0.-0.5,2*NETA2-0.5);
+
+	sprintf(name,"hVn_FCal_pt_bg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_FCal_pt_bg[icent][iside][ihar]=new TProfile(name,"",NPT,0.-0.5,NPT-0.5);
+	sprintf(name,"hVn_FCal_eta_bg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_FCal_eta_bg[icent][iside][ihar]=new TProfile(name,"",2*NETA2,0.-0.5,2*NETA2-0.5);
+
+	//Zdc
+	sprintf(name,"hVn_Zdc_pt_fg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_Zdc_pt_fg[icent][iside][ihar]=new TProfile(name,"",NPT,0.-0.5,NPT-0.5);
+	sprintf(name,"hVn_Zdc_eta_fg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_Zdc_eta_fg[icent][iside][ihar]=new TProfile(name,"",2*NETA2,0.-0.5,2*NETA2-0.5);
+
+	sprintf(name,"hVn_Zdc_pt_bg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_Zdc_pt_bg[icent][iside][ihar]=new TProfile(name,"",NPT,0.-0.5,NPT-0.5);
+	sprintf(name,"hVn_Zdc_eta_bg_cent%d_side%d_har%d",icent,iside,ihar);
+	hVn_Zdc_eta_bg[icent][iside][ihar]=new TProfile(name,"",2*NETA2,0.-0.5,2*NETA2-0.5);
+      }
+    }
+  }
+  //3PC Correlation hists
+  for(int icent=0;icent<NCENT;icent++){
+    //FCal
+    sprintf(name,"hC112_FCal_pt_same_fg_cent%d",icent);
+    hC112_FCal_pt_same_fg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_FCal_eta_same_fg_cent%d",icent);
+    hC112_FCal_eta_same_fg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    sprintf(name,"hC112_FCal_pt_same_bg_cent%d",icent);
+    hC112_FCal_pt_same_bg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_FCal_eta_same_bg_cent%d",icent);
+    hC112_FCal_eta_same_bg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    sprintf(name,"hC112_FCal_pt_opp_fg_cent%d",icent);
+    hC112_FCal_pt_opp_fg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_FCal_eta_opp_fg_cent%d",icent);
+    hC112_FCal_eta_opp_fg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    sprintf(name,"hC112_FCal_pt_opp_bg_cent%d",icent);
+    hC112_FCal_pt_opp_bg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_FCal_eta_opp_bg_cent%d",icent);
+    hC112_FCal_eta_opp_bg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    //Zdc
+    sprintf(name,"hC112_Zdc_pt_same_fg_cent%d",icent);
+    hC112_Zdc_pt_same_fg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_Zdc_eta_same_fg_cent%d",icent);
+    hC112_Zdc_eta_same_fg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    sprintf(name,"hC112_Zdc_pt_same_bg_cent%d",icent);
+    hC112_Zdc_pt_same_bg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_Zdc_eta_same_bg_cent%d",icent);
+    hC112_Zdc_eta_same_bg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    sprintf(name,"hC112_Zdc_pt_opp_fg_cent%d",icent);
+    hC112_Zdc_pt_opp_fg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_Zdc_eta_opp_fg_cent%d",icent);
+    hC112_Zdc_eta_opp_fg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+
+    sprintf(name,"hC112_Zdc_pt_opp_bg_cent%d",icent);
+    hC112_Zdc_pt_opp_bg[icent]=new TProfile2D(name,"",NPT,0.-0.5,NPT-0.5,NPT,0.-0.5,NPT-0.5);
+    sprintf(name,"hC112_Zdc_eta_opp_bg_cent%d",icent);
+    hC112_Zdc_eta_opp_bg[icent]=new TProfile2D(name,"",NETA,0.-0.5,NETA-0.5,NETA,0.-0.5,NETA-0.5);
+  }
+  cout<<"Finished initialising hists"<<endl;
+}
+
+
+void extractor_flat::SaveHistos_SP() {
+  fOut_SP->cd();
+  for(int icent=0;icent<NCENT;icent++){
+    for(int ich=0;ich<NCH+1;ich++){
+      for(int iside=0;iside<NSIDE+1;iside++){
+	hMean_pt[icent][ich][iside]->Write();
+	hMean_eta[icent][ich][iside]->Write();
+      }
+    }
+  }
+  for(int ihar=0;ihar<NHAR;ihar++){
+    hRes_FCal_fg[ihar]->Write();
+    hRes_Zdc_fg[ihar]->Write();
+    hRes_FCal_bg[ihar]->Write();
+    hRes_Zdc_bg[ihar]->Write();
+  }
+
+  for(int iside=0;iside<NSIDE+1;iside++){
+    for(int ihar=0;ihar<NHAR;ihar++){
+      hVn_FCal_cent_fg[iside][ihar]->Write();
+      hVn_Zdc_cent_fg[iside][ihar]->Write();
+      for(int icent=0;icent<NCENT;icent++){
+	hVn_FCal_pt_fg[icent][iside][ihar]->Write();
+	hVn_FCal_eta_fg[icent][iside][ihar]->Write();
+	hVn_FCal_pt_bg[icent][iside][ihar]->Write();
+	hVn_FCal_eta_bg[icent][iside][ihar]->Write();
+
+	hVn_Zdc_pt_fg[icent][iside][ihar]->Write();
+	hVn_Zdc_eta_fg[icent][iside][ihar]->Write();
+	hVn_Zdc_pt_bg[icent][iside][ihar]->Write();
+	hVn_Zdc_eta_bg[icent][iside][ihar]->Write();
+      }
+    }
+  }
+  /*
+  for(int icent=0;icent<NCENT;icent++){
+    hC112_FCal_pt_same_fg[icent]->Write();
+    hC112_FCal_eta_same_fg[icent]->Write();
+    hC112_FCal_pt_same_bg[icent]->Write();
+    hC112_FCal_eta_same_bg[icent]->Write();
+
+    hC112_FCal_pt_opp_fg[icent]->Write();
+    hC112_FCal_eta_opp_fg[icent]->Write();
+    hC112_FCal_pt_opp_bg[icent]->Write();
+    hC112_FCal_eta_opp_bg[icent]->Write();
+
+    hC112_Zdc_pt_same_fg[icent]->Write();
+    hC112_Zdc_eta_same_fg[icent]->Write();
+    hC112_Zdc_pt_same_bg[icent]->Write();
+    hC112_Zdc_eta_same_bg[icent]->Write();
+
+    hC112_Zdc_pt_opp_fg[icent]->Write();
+    hC112_Zdc_eta_opp_fg[icent]->Write();
+    hC112_Zdc_pt_opp_bg[icent]->Write();
+    hC112_Zdc_eta_opp_bg[icent]->Write();
+  }
+  */
+  //Track histograms
+    for(int icent=0;icent<NCENT;icent++){
+    for(int ipt=0;ipt<NPT;ipt++){
+      hTrk_eff2[icent][ipt]->Write();
+    }
+  }
+  hNTrk->Write();
+  hCent->Write();
+  hPt->Write();
+  hPhi->Write();
+  hPhi_wei->Write();
+  hEta->Write();
+  hTrk_w->Write();
+  hTrk_wei->Write();
+  hTrk_eff->Write();
+  //hEtaPhi->Write();
+  //hEtaPhi_wei->Write();
+
+  fOut_SP->Close();
+  cout<<"Finished saving hists"<<endl;
+}

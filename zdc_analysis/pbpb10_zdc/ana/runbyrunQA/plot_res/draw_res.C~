@@ -1,0 +1,466 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <fstream>
+#include <vector>
+
+#include "TFile.h"
+#include "TTree.h"
+#include "TMath.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TProfile.h"
+#include "TProfile2D.h"
+#include "TF1.h"
+#include "TGraph.h"
+#include "TGraphErrors.h"
+#include "TRandom3.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include "TStyle.h"
+#include "TLine.h"
+#include "THStack.h"
+#include "TLatex.h"
+#include "string.h"
+
+enum {
+  NDET = 16,
+  NSIDE   = 2,
+  NMODULE = 2,
+  NGAIN   = 2,
+  NCH1    = 4,
+  NCH2    = 24,
+  NHAR    = 4,
+  //NCENT   = 20,
+  NCENT   = 11,
+  NCENT_1p  = 100,
+  //NK      = 12,
+  NSAMP   = 10,
+  //STORE_DEP = 20,
+  STORE_DEP = 5,
+  NVZ_EP=10,
+  NPT_EP=10,
+  NCH_EP=2
+};
+
+enum{
+  NETA=12,
+  NETA2=10,
+  NCH=2,
+  NPT=10,
+  NHAR2=2,//v2,v3
+  NHAR3=5,//Q2n for v3 is v6
+  NP=4,
+  NK=4
+};
+int cent_mat[]={0,5,10,20,30,40,50,60,70,80,90,100};
+double cent_mat_double[]={0,5,10,20,30,40,50,60,70,80,90,100};
+
+char name[300];
+const int NFILE=30;
+
+//Hists
+TFile *fin[NFILE];
+TH1D *hCent[NFILE];
+TProfile *hResCent_FCal_fg[NHAR][NFILE],*hResCent_FCal_bg[NHAR][NFILE];
+TProfile *hResCent_Zdc_fg[NHAR][NFILE],*hResCent_Zdc_bg[NHAR][NFILE];
+TH1D *hResCent_flat_FCal[NHAR][NFILE],*hResCent_mix_FCal[NHAR][NFILE];
+TH1D *hResCent_flat_Zdc[NHAR][NFILE],*hResCent_mix_Zdc[NHAR][NFILE];
+TH1D *hResRun_flat_FCal[NHAR][NFILE],*hResRun_mix_FCal[NHAR][NFILE];
+TH1D *hResRun_flat_Zdc[NHAR][NFILE],*hResRun_mix_Zdc[NHAR][NFILE];
+
+//Functions
+void setStyle1(TH1D *h,int itype1){
+  h->GetYaxis()->CenterTitle(0);       h->GetXaxis()->CenterTitle(0);  //h->GetZaxis()->Cent\
+  erTitle();
+  h->GetYaxis()->SetTitleOffset(1.5); h->GetXaxis()->SetTitleOffset(1.5);
+  //h->GetZaxis()->SetTitleOffset(1.5);
+  h->GetXaxis()->SetTitleFont(43);    h->GetXaxis()->SetTitleSize(17);
+  h->GetXaxis()->SetLabelFont(43);    h->GetXaxis()->SetLabelSize(15);
+  h->GetYaxis()->SetTitleFont(43);    h->GetYaxis()->SetTitleSize(17);
+  h->GetYaxis()->SetLabelFont(43);    h->GetYaxis()->SetLabelSize(15);
+  //h->GetZaxis()->SetTitleFont(43);    h->GetZaxis()->SetTitleSize(17);
+  //h->GetZaxis()->SetLabelFont(43);    h->GetZaxis()->SetLabelSize(15);
+  h->GetYaxis()->SetNdivisions(505);
+  h->GetXaxis()->SetNdivisions(505);
+  int c_mat[]={1,2,4,6,28,36,7,8,9,46,30};
+  int m_mat[]={20,24,24,25,25,21,30,27,25,28,33,20,23,29,34};
+  h->SetTitle("");
+
+  //h->SetMarkerStyle(m_mat[itype1]);
+  h->SetMarkerStyle(24);
+  h->SetMarkerColor(c_mat[itype1]);
+  h->SetLineColor(c_mat[itype1]);
+  h->SetMarkerSize(1.2);
+
+  //h->GetYaxis()->SetRangeUser(0.,5.);
+}
+
+void Divide_Pad(TCanvas *c,TPad *p[],int nrow,int ncol){
+  int N=nrow*ncol;
+  double xmin,ymin,xmax,ymax;
+  xmin=0.0,ymin=0.0;
+  xmax=1.-0.0,ymax=1.-0.0;
+  double dx,dy,xw,yw,xw1,yw1,xwn,ywn;
+  dx=0.1,dy=0.1;
+  xw=(1.-xmin)/ncol;
+  yw=(1.-ymin)/nrow;
+  double MX_min[10][10],MX_max[10][10];
+  double MY_min[10][10],MY_max[10][10];
+  for(int icol=0;icol<ncol;icol++){
+    for(int irow=nrow-1;irow>=0;irow--){
+      xw1=xmax/ncol+0.025;
+      yw1=ymax/nrow+0.034;
+      xw=(xmax-xw1)/(ncol-1);
+      yw=(ymax-yw1)/(nrow-1);
+      xwn=xw;//xmax/ncol+0.01;
+      ywn=yw;//ymax/nrow+0.01;
+      xwn=xw+0.005;
+      ywn=yw+0.015;
+      xw=(xmax-xw1-xwn)/(ncol-2);
+      yw=(ymax-yw1-ywn)/(nrow-2);
+
+      if(icol==0){
+        MX_min[irow][icol]=xmin;
+        MX_max[irow][icol]=xmin+xw1;
+      }
+      if(icol>0 && icol!=ncol-1){
+        MX_min[irow][icol]=xmin+xw1+(icol-1)*xw;
+        MX_max[irow][icol]=xmin+xw1+(icol)*xw;
+      }
+      if(icol==ncol-1){
+        MX_min[irow][icol]=MX_max[irow][icol-1];//xmin+xw1+(icol-1)*xw;
+        MX_max[irow][icol]=xmax;
+      }
+
+      if(irow==nrow-1){
+        MY_min[irow][icol]=ymin;
+        MY_max[irow][icol]=ymin+yw1;
+      }
+      if(irow!=nrow-1 && irow!=0){
+        MY_min[irow][icol]=ymin+yw1+(nrow-2-irow)*yw;
+        MY_max[irow][icol]=ymin+yw1+(nrow-2-irow+1)*yw;
+      }
+      if(irow==0){
+        MY_min[irow][icol]=MY_max[irow+1][icol];//ymin+yw1+(nrow-2-irow)*yw;
+        MY_max[irow][icol]=ymax;
+      }
+    }
+  }
+
+  int cnt=0;
+  for(int irow=0;irow<nrow;irow++){
+    for(int icol=0;icol<ncol;icol++){
+      sprintf(name,"p_%d",cnt);
+      //cout<<MX_min[irow][icol]<<",\t"<<MX_max[irow][icol]<<",\t"<<MY_min[irow][icol]<<",\t"<<MY_max[irow][icol]<<endl;
+
+      p[cnt]=new TPad(name,name,MX_min[irow][icol],MY_min[irow][icol],MX_max[irow][icol],MY_max[irow][icol]);
+      c->cd();
+      p[cnt]->SetRightMargin(0);
+      p[cnt]->SetLeftMargin(0);
+      p[cnt]->SetTopMargin(0);
+      p[cnt]->SetBottomMargin(0);
+      if(icol==0) p[cnt]->SetLeftMargin(0.17);
+      if(icol==ncol-1) p[cnt]->SetRightMargin(0.05);
+      if(irow==0)       p[cnt]->SetTopMargin(0.1);
+      if(irow==nrow-1) p[cnt]->SetBottomMargin(0.2);
+      p[cnt]->SetTicks(1,1);
+      p[cnt]->Draw();
+      cnt++;
+      
+    }
+  }
+
+}
+  
+
+void Init(){
+  for(int ifile=0;ifile<NFILE;ifile++){
+    sprintf(name,"../run_job/out/out_%d_%d_0.root",ifile,ifile+1);
+    fin[ifile]=new TFile(name,"read");
+    hCent[ifile]=(TH1D*)fin[ifile]->Get("hCent");
+    //cout<<name<<"\t"<<hCent[ifile]->GetEntries()<<endl;
+    for(int ihar=0;ihar<NHAR;ihar++){
+      //Read TProfiles
+      sprintf(name,"hResCent_FCal_fg_har%d",ihar);
+      hResCent_FCal_fg[ihar][ifile]=(TProfile*)fin[ifile]->Get(name);
+      sprintf(name,"hResCent_FCal_bg_har%d",ihar);
+      hResCent_FCal_bg[ihar][ifile]=(TProfile*)fin[ifile]->Get(name);
+
+      sprintf(name,"hResCent_Zdc_fg_har%d",ihar);
+      hResCent_Zdc_fg[ihar][ifile]=(TProfile*)fin[ifile]->Get(name);
+      sprintf(name,"hResCent_Zdc_bg_har%d",ihar);
+      hResCent_Zdc_bg[ihar][ifile]=(TProfile*)fin[ifile]->Get(name);
+
+      //Define Hists
+      sprintf(name, "hResCent_flat_FCal_har%d_ifile%d", ihar,ifile);
+      hResCent_flat_FCal[ihar][ifile] = new TH1D(name, "", NCENT, cent_mat_double);
+      sprintf(name, "hResCent_mix_FCal_har%d_ifile%d", ihar,ifile);
+      hResCent_mix_FCal[ihar][ifile] = new TH1D(name, "", NCENT, cent_mat_double);
+
+      sprintf(name, "hResCent_flat_Zdc_har%d_ifile%d", ihar,ifile);
+      hResCent_flat_Zdc[ihar][ifile] = new TH1D(name, "", NCENT, cent_mat_double);
+      sprintf(name, "hResCent_mix_Zdc_har%d_ifile%d", ihar,ifile);
+      hResCent_mix_Zdc[ihar][ifile] = new TH1D(name, "", NCENT, cent_mat_double);
+
+      //Fill Hists
+      double y,y1,y2;
+      double dy,dy1,dy2;
+      for (int icent=0; icent<NCENT; icent++) {
+	y1=hResCent_FCal_fg[ihar][ifile]->GetBinContent(icent+1);
+	dy1=hResCent_FCal_fg[ihar][ifile]->GetBinError(icent+1);
+	y2=hResCent_FCal_bg[ihar][ifile]->GetBinContent(icent+1);
+	dy2=hResCent_FCal_bg[ihar][ifile]->GetBinError(icent+1);
+	y=y1-y2;
+	dy=sqrt(pow(dy1,2)+pow(dy2,2));
+	hResCent_flat_FCal[ihar][ifile]->SetBinContent(icent+1,y1);
+	hResCent_flat_FCal[ihar][ifile]->SetBinError  (icent+1,dy1);
+	hResCent_mix_FCal[ihar][ifile]->SetBinContent(icent+1,y);
+	hResCent_mix_FCal[ihar][ifile]->SetBinError  (icent+1,dy);
+
+	y1=hResCent_Zdc_fg[ihar][ifile]->GetBinContent(icent+1);
+	dy1=hResCent_Zdc_fg[ihar][ifile]->GetBinError(icent+1);
+	y2=hResCent_Zdc_bg[ihar][ifile]->GetBinContent(icent+1);
+	dy2=hResCent_Zdc_bg[ihar][ifile]->GetBinError(icent+1);
+	y=y1-y2;
+	dy=sqrt(pow(dy1,2)+pow(dy2,2));
+	hResCent_flat_Zdc[ihar][ifile]->SetBinContent(icent+1,y1);
+	hResCent_flat_Zdc[ihar][ifile]->SetBinError  (icent+1,dy1);
+	hResCent_mix_Zdc[ihar][ifile]->SetBinContent(icent+1,y);
+	hResCent_mix_Zdc[ihar][ifile]->SetBinError  (icent+1,dy);
+
+	//Set Hist Style
+	setStyle1(hResCent_flat_FCal[ihar][ifile],1);
+	setStyle1(hResCent_mix_FCal[ihar][ifile],2);
+	setStyle1(hResCent_flat_Zdc[ihar][ifile],1);
+	setStyle1(hResCent_mix_Zdc[ihar][ifile],2);
+      }
+    }
+  }
+
+  //Make plots as a function of runs
+  for(int ihar=0;ihar<NHAR;ihar++){
+    for (int icent=0; icent<NCENT; icent++) {
+      sprintf(name,"hResRun_flat_FCal_har%d_cent%d",ihar,icent);
+      hResRun_flat_FCal[ihar][icent]=new TH1D(name,"",NFILE,0.-0.5,NFILE-0.5);
+      sprintf(name,"hResRun_mix_FCal_har%d_cent%d",ihar,icent);
+      hResRun_mix_FCal[ihar][icent]=new TH1D(name,"",NFILE,0.-0.5,NFILE-0.5);
+
+      sprintf(name,"hResRun_flat_Zdc_har%d_cent%d",ihar,icent);
+      hResRun_flat_Zdc[ihar][icent]=new TH1D(name,"",NFILE,0.-0.5,NFILE-0.5);
+      sprintf(name,"hResRun_mix_Zdc_har%d_cent%d",ihar,icent);
+      hResRun_mix_Zdc[ihar][icent]=new TH1D(name,"",NFILE,0.-0.5,NFILE-0.5);
+      for(int ifile=0;ifile<NFILE;ifile++){
+	double y,dy;
+	y=hResCent_flat_FCal[ihar][ifile]->GetBinContent(icent+1);
+        dy=hResCent_flat_FCal[ihar][ifile]->GetBinError(icent+1);
+        hResRun_flat_FCal[ihar][icent]->SetBinContent(ifile+1,y);
+        hResRun_flat_FCal[ihar][icent]->SetBinError(ifile+1,dy);
+	y=hResCent_mix_FCal[ihar][ifile]->GetBinContent(icent+1);
+        dy=hResCent_mix_FCal[ihar][ifile]->GetBinError(icent+1);
+        hResRun_mix_FCal[ihar][icent]->SetBinContent(ifile+1,y);
+        hResRun_mix_FCal[ihar][icent]->SetBinError(ifile+1,dy);
+
+	
+	y=hResCent_flat_Zdc[ihar][ifile]->GetBinContent(icent+1);
+	dy=hResCent_flat_Zdc[ihar][ifile]->GetBinError(icent+1);
+	hResRun_flat_Zdc[ihar][icent]->SetBinContent(ifile+1,y);
+	hResRun_flat_Zdc[ihar][icent]->SetBinError(ifile+1,dy);
+	y=hResCent_mix_Zdc[ihar][ifile]->GetBinContent(icent+1);
+	dy=hResCent_mix_Zdc[ihar][ifile]->GetBinError(icent+1);
+	hResRun_mix_Zdc[ihar][icent]->SetBinContent(ifile+1,y);
+	hResRun_mix_Zdc[ihar][icent]->SetBinError(ifile+1,dy);
+      }
+      setStyle1(hResRun_flat_FCal[ihar][icent],1);
+      setStyle1(hResRun_mix_FCal[ihar][icent],2);
+      setStyle1(hResRun_flat_Zdc[ihar][icent],1);
+      setStyle1(hResRun_mix_Zdc[ihar][icent],2);
+    }
+  }
+
+}
+
+void Plot_1(){
+  //Plot
+  gStyle->SetOptStat(0);
+  const int NCan=5;
+  TCanvas *c1[NHAR][NCan];
+  TLegend *leg1[NHAR][NCan];
+  TPad *pad1[NHAR][NCan][6];
+  TLegend *leg;
+  
+  for(int ihar=0;ihar<NHAR;ihar++){
+    for(int i=0;i<NCan;i++){
+      sprintf(name,"c1_ihar%d_%d",ihar,i);
+      c1[ihar][i]=new TCanvas(name,name,1100,700);
+      if(ihar==0){
+	leg1[ihar][i]=new TLegend(0.25,0.6,0.88,0.88);
+      }
+      else{
+	leg1[ihar][i]=new TLegend(0.2,0.65,0.88,0.88);
+	leg1[ihar][i]->SetNColumns(2);
+      }
+      leg1[ihar][i]->SetLineColor(0);
+    }
+  }
+
+  TLine *line0;
+  line0=new TLine(0,0,100,0);
+  line0->SetLineStyle(7);
+  line0->SetLineWidth(1);
+  TLatex text;
+  text.SetNDC(1);
+  text.SetTextFont(43);
+  text.SetTextSize(18);
+  
+  for(int ihar=0;ihar<NHAR;ihar++){
+    int cnt_file=0;
+    for(int ican=0;ican<NCan;ican++){
+      Divide_Pad(c1[ihar][ican],pad1[ihar][ican],2,3);
+      c1[ihar][ican]->cd();
+      for(int i=0;i<6;i++){
+	pad1[ihar][ican][i]->cd();
+	hResCent_flat_Zdc[ihar][cnt_file]->Draw();
+	if(ihar==0) hResCent_flat_Zdc[ihar][cnt_file]->GetYaxis()->SetRangeUser(-0.1,0.);
+	if(ihar==1) hResCent_flat_Zdc[ihar][cnt_file]->GetYaxis()->SetRangeUser(-0.01,0.015);
+	if(ihar==2) hResCent_flat_Zdc[ihar][cnt_file]->GetYaxis()->SetRangeUser(-0.01,0.01);
+	if(ihar==0) sprintf(name,"<cos(#Psi_{1}^{A}-#Psi_{1}^{C})>");
+	else sprintf(name,"<cos%d(#Psi_{1}^{A}-#Psi_{1}^{C})>",ihar+1);
+	if(i==5) hResCent_flat_Zdc[ihar][cnt_file]->SetXTitle("Centrality");
+	if(i==0){
+	  hResCent_flat_Zdc[ihar][cnt_file]->SetYTitle(name);
+	  leg1[ihar][ican]->AddEntry(hResCent_flat_Zdc[ihar][cnt_file],"Same Ev","P");
+	  leg1[ihar][ican]->AddEntry(hResCent_mix_Zdc[ihar][cnt_file],"Same Ev - Mixed Ev","P");
+	  leg1[ihar][ican]->Draw("same");
+	}
+	hResCent_flat_Zdc[ihar][cnt_file]->GetXaxis()->SetTitleOffset(2.5);
+	hResCent_flat_Zdc[ihar][cnt_file]->GetYaxis()->SetTitleOffset(3.);
+	hResCent_mix_Zdc[ihar][cnt_file]->Draw("same");
+	if(ihar!=0) line0->Draw("same");
+	sprintf(name,"NEv = %d",int(hCent[cnt_file]->GetEntries()));
+	if(ihar==0) text.DrawLatex(0.4, 0.6,name);
+	if(ihar!=0) text.DrawLatex(0.4, 0.2,name);
+	cnt_file++;
+      }
+    }
+  }
+  
+  //Write Hists
+  TFile *fout;
+  fout=new TFile("./out_RbyR_1.root","recreate");
+  fout->cd();
+  /*
+  for(int ifile=0;ifile<NFILE;ifile++){
+    for(int ihar=0;ihar<2;ihar++){
+      hResCent_flat_Zdc[ihar][ifile]->Write();
+      hResCent_mix_Zdc[ihar][ifile]->Write();
+    }
+  }
+  */
+  for(int ihar=0;ihar<3;ihar++){
+    for(int ican=0;ican<NCan;ican++){
+      c1[ihar][ican]->Write();
+    }
+  }
+  fout->Close();
+
+  //Save as pdf
+  for(int ihar=0;ihar<3;ihar++){
+    for(int ican=0;ican<NCan;ican++){
+      sprintf(name,"./plots_1/ResCent_v%d_%d.pdf",ihar+1,ican);
+      c1[ihar][ican]->SaveAs(name);
+    }
+  }
+
+  
+}
+
+void Plot_2(){
+  //Plot
+  gStyle->SetOptStat(0);
+  const int NCan=5;
+  TCanvas *c1[NHAR];
+  TLegend *leg1[NHAR];
+  TPad *pad1[NHAR][9];
+  TLegend *leg;
+  
+  for(int ihar=0;ihar<NHAR;ihar++){
+    sprintf(name,"c1_ihar%d",ihar);
+    c1[ihar]=new TCanvas(name,name,1100,700);
+    if(ihar==0){
+      leg1[ihar]=new TLegend(0.25,0.6,0.88,0.88);
+    }
+    else{
+      leg1[ihar]=new TLegend(0.2,0.65,0.88,0.88);
+      leg1[ihar]->SetNColumns(2);
+    }
+    leg1[ihar]->SetLineColor(0);
+  }
+
+  TLine *line0;
+  line0=new TLine(0,0,NFILE,0);
+  line0->SetLineStyle(7);
+  line0->SetLineWidth(1);
+  TLatex text;
+  text.SetNDC(1);
+  text.SetTextFont(43);
+  text.SetTextSize(18);
+  
+  for(int ihar=0;ihar<NHAR;ihar++){
+    int cnt_cent=0;
+    Divide_Pad(c1[ihar],pad1[ihar],3,3);
+    c1[ihar]->cd();
+    for(int icent=0;icent<9;icent++){
+      pad1[ihar][icent]->cd();
+      hResRun_flat_Zdc[ihar][icent]->Draw();
+      if(ihar==0){
+	if(icent<3) hResRun_flat_Zdc[ihar][icent]->GetYaxis()->SetRangeUser(-0.1,0.05);
+	else if(icent<6) hResRun_flat_Zdc[ihar][icent]->GetYaxis()->SetRangeUser(-0.12,-0.05);
+	else hResRun_flat_Zdc[ihar][icent]->GetYaxis()->SetRangeUser(-0.1,0.);
+
+      }
+      if(ihar==1) hResRun_flat_Zdc[ihar][icent]->GetYaxis()->SetRangeUser(-0.01,0.015);
+      if(ihar==2) hResRun_flat_Zdc[ihar][icent]->GetYaxis()->SetRangeUser(-0.01,0.01);
+      if(ihar==0) sprintf(name,"<cos(#Psi_{1}^{A}-#Psi_{1}^{C})>");
+      else sprintf(name,"<cos%d(#Psi_{1}^{A}-#Psi_{1}^{C})>",ihar+1);
+      if(icent==8) hResRun_flat_Zdc[ihar][icent]->SetXTitle("Runs");
+      if(icent==0){
+	hResRun_flat_Zdc[ihar][icent]->SetYTitle(name);
+	leg1[ihar]->AddEntry(hResRun_flat_Zdc[ihar][icent],"Same Ev","P");
+	leg1[ihar]->AddEntry(hResRun_mix_Zdc[ihar][icent],"Same Ev - Mixed Ev","P");
+	leg1[ihar]->Draw("same");
+      }
+      hResRun_flat_Zdc[ihar][icent]->GetXaxis()->SetTitleOffset(2.5);
+      hResRun_flat_Zdc[ihar][icent]->GetYaxis()->SetTitleOffset(3.);
+      hResRun_mix_Zdc[ihar][icent]->Draw("same");
+      //if(ihar!=0) line0->Draw("same");
+      //if(ihar==0) text.DrawLatex(0.4, 0.6,name);
+      //if(ihar!=0) text.DrawLatex(0.4, 0.2,name);
+    }
+  }
+  
+  //Write Hists
+  TFile *fout;
+  fout=new TFile("./out_RbyR_2.root","recreate");
+  fout->cd();
+  for(int ihar=0;ihar<3;ihar++){
+    for(int ican=0;ican<NCan;ican++){
+      c1[ihar]->Write();
+    }
+  }
+  fout->Close();
+
+  //Save as pdf
+  for(int ihar=0;ihar<3;ihar++){
+    sprintf(name,"./plots_2/ResRun_v%d.pdf",ihar+1);
+    c1[ihar]->SaveAs(name);
+  }
+
+}
+
+
+void draw_res(){
+  Init();
+  Plot_1();
+  Plot_2();
+}

@@ -1,0 +1,3 @@
+#Skip the large .root files and .pdf files for uploading to github.com
+*.root
+*.pdf

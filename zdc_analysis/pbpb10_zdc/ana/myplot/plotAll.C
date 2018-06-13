@@ -1,0 +1,660 @@
+#include "./plot.h"
+#include "./plot1_Psi.C"
+#include "./plot2_Res.C"
+#include "./plot3_v1_eta.C"
+#include "./plot4_v1_pt.C"
+#include "./plot5_v2_eta.C"
+#include "./plot6_v2_pt.C"
+#include "./plot7_v2_pt_FCal.C"
+#include "./plot8_v2_pt.C"
+#include "./plot9_v2_pt_comp.C"
+void plotAll(){
+  plot *a=new plot();
+  a->init();
+  a->plot1_Psi();
+  a->plot2_Res();
+  a->plot3_v1_eta();
+  a->plot4_v1_pt();
+  a->plot5_v2_eta();
+  a->plot6_v2_pt();
+  a->plot7_v2_pt_FCal();
+  //a->plot8_v2_pt();
+  a->plot9_v2_pt_comp();
+  a->write_allCent();
+}
+
+void plot::init(){
+  fin=new TFile("../zdcvn11/Output_doAna_vn_mix2.root");
+  fin2=new TFile("../zdcvn11/Output_3pv.root");
+  /*
+  //Read Psi Histograms
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	sprintf(name, "h_Psi_cent%d_side%d_har%d", icent, iside, ihar);
+	hPsi[icent][iside][ihar]=(TH1D*)fin->Get(name);
+	sprintf(name, "h_PsiC_cent%d_side%d_har%d", icent, iside, ihar);
+	hPsiC[icent][iside][ihar]=(TH1D*)fin->Get(name);
+	sprintf(name, "h_PsiF_cent%d_side%d_har%d", icent, iside, ihar);
+	hPsiF[icent][iside][ihar]=(TH1D*)fin->Get(name);
+	//Scale
+	hPsi[icent][iside][ihar]->Scale(1./hPsi[icent][iside][ihar]->Integral());
+        hPsiC[icent][iside][ihar]->Scale(1./hPsiC[icent][iside][ihar]->Integral());
+        hPsiF[icent][iside][ihar]->Scale(1./hPsiF[icent][iside][ihar]->Integral());
+	double mean0=FindAvg(hPsiF[icent][iside][ihar]);
+	hPsi[icent][iside][ihar]->Scale(1./mean0);
+	hPsiC[icent][iside][ihar]->Scale(1./mean0);
+	hPsiF[icent][iside][ihar]->Scale(1./mean0);
+	//Style
+	setStyle1(hPsi[icent][iside][ihar],0);
+	setStyle1(hPsiC[icent][iside][ihar],1);
+	setStyle1(hPsiF[icent][iside][ihar],2);
+
+      }
+    }
+  }
+  */
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+      sprintf(name, "hDphi_FCal_fg_cent%d_har%d", icent, ihar);
+      hDphi_FCal_fg[icent][ihar] = (TH1D*)fin->Get(name);
+      sprintf(name, "hDphi_FCal_bg_cent%d_har%d", icent, ihar);
+      hDphi_FCal_bg[icent][ihar] = (TH1D*)fin->Get(name);
+      sprintf(name, "hDphi_FCal_rat_cent%d_har%d", icent, ihar);
+      hDphi_FCal_rat[icent][ihar] = (TH1D*)fin->Get(name);
+      
+      //Rebin
+      //hDphi_FCal_fg[icent][ihar]->Rebin(8);
+      //hDphi_FCal_bg[icent][ihar]->Rebin(8);
+      //hDphi_FCal_rat[icent][ihar]->Rebin(8);
+      
+      //Scale
+      hDphi_FCal_fg[icent][ihar]->Scale(1./hDphi_FCal_fg[icent][ihar]->Integral());
+      hDphi_FCal_bg[icent][ihar]->Scale(1./hDphi_FCal_bg[icent][ihar]->Integral());
+      hDphi_FCal_rat[icent][ihar]->Scale(1./hDphi_FCal_rat[icent][ihar]->Integral());
+      double mean0=FindAvg(hDphi_FCal_bg[icent][ihar]);
+      hDphi_FCal_fg[icent][ihar]->Scale(1./mean0);
+      hDphi_FCal_bg[icent][ihar]->Scale(1./mean0);
+      hDphi_FCal_rat[icent][ihar]->Scale(1./mean0);
+      
+      //Style
+      setStyle1(hDphi_FCal_fg[icent][ihar],0);
+      setStyle1(hDphi_FCal_bg[icent][ihar],1);
+      setStyle1(hDphi_FCal_rat[icent][ihar],2);
+      
+      sprintf(name, "hDphi_Zdc_fg_cent%d_har%d", icent, ihar);
+      hDphi_Zdc_fg[icent][ihar] = (TH1D*)fin->Get(name);
+      sprintf(name, "hDphi_Zdc_bg_cent%d_har%d", icent, ihar);
+      hDphi_Zdc_bg[icent][ihar] = (TH1D*)fin->Get(name);
+      sprintf(name, "hDphi_Zdc_rat_cent%d_har%d", icent, ihar);
+      hDphi_Zdc_rat[icent][ihar] = (TH1D*)fin->Get(name);
+      
+      //Rebin
+      //hDphi_Zdc_fg[icent][ihar]->Rebin(8);
+      //hDphi_Zdc_bg[icent][ihar]->Rebin(8);
+      //hDphi_Zdc_rat[icent][ihar]->Rebin(8);
+      //Scale
+      hDphi_Zdc_fg[icent][ihar]->Scale(1./hDphi_Zdc_fg[icent][ihar]->Integral());
+      hDphi_Zdc_bg[icent][ihar]->Scale(1./hDphi_Zdc_bg[icent][ihar]->Integral());
+      hDphi_Zdc_rat[icent][ihar]->Scale(1./hDphi_Zdc_rat[icent][ihar]->Integral());
+      mean0=FindAvg(hDphi_Zdc_bg[icent][ihar]);
+      hDphi_Zdc_fg[icent][ihar]->Scale(1./mean0);
+      hDphi_Zdc_bg[icent][ihar]->Scale(1./mean0);
+      hDphi_Zdc_rat[icent][ihar]->Scale(1./mean0);
+      //Style
+      setStyle1(hDphi_Zdc_fg[icent][ihar],0);
+      setStyle1(hDphi_Zdc_bg[icent][ihar],1);
+      setStyle1(hDphi_Zdc_rat[icent][ihar],2);
+    }
+  }
+  
+  //Read Res histograms
+  for (int ihar=0; ihar<NHAR; ihar++) {
+    //For FCal
+    sprintf(name, "hResCent_flat_FCal_har%d", ihar);
+    hResCent_flat_FCal[ihar] = (TH1D*)fin->Get(name); 
+    sprintf(name, "hResCent_flat_FCal_sub_har%d", ihar);
+    hResCent_flat_FCal_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_flat_FCal_ful_har%d", ihar);
+    hResCent_flat_FCal_ful[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_flat_FCal_sub_har%d", ihar);
+    hResXCent_flat_FCal_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_flat_FCal_ful_har%d", ihar);
+    hResXCent_flat_FCal_ful[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_mix_FCal_har%d", ihar);
+    hResCent_mix_FCal[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_mix_FCal_sub_har%d", ihar);
+    hResCent_mix_FCal_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_mix_FCal_ful_har%d", ihar);
+    hResCent_mix_FCal_ful[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_mix_FCal_sub_har%d", ihar);
+    hResXCent_mix_FCal_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_mix_FCal_ful_har%d", ihar);
+    hResXCent_mix_FCal_ful[ihar] = (TH1D*)fin->Get(name);
+
+    //For Zdc
+    sprintf(name, "hResCent_flat_Zdc_har%d", ihar);
+    hResCent_flat_Zdc[ihar] = (TH1D*)fin->Get(name); 
+    sprintf(name, "hResCent_flat_Zdc_sub_har%d", ihar);
+    hResCent_flat_Zdc_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_flat_Zdc_ful_har%d", ihar);
+    hResCent_flat_Zdc_ful[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_flat_Zdc_sub_har%d", ihar);
+    hResXCent_flat_Zdc_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_flat_Zdc_ful_har%d", ihar);
+    hResXCent_flat_Zdc_ful[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_mix_Zdc_har%d", ihar);
+    hResCent_mix_Zdc[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_mix_Zdc_sub_har%d", ihar);
+    hResCent_mix_Zdc_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResCent_mix_Zdc_ful_har%d", ihar);
+    hResCent_mix_Zdc_ful[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_mix_Zdc_sub_har%d", ihar);
+    hResXCent_mix_Zdc_sub[ihar] = (TH1D*)fin->Get(name);
+    sprintf(name, "hResXCent_mix_Zdc_ful_har%d", ihar);
+    hResXCent_mix_Zdc_ful[ihar] = (TH1D*)fin->Get(name);
+  }
+  
+  //For FCal
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	for (int ipt=0; ipt<NPT+1; ipt++) {
+	  sprintf(name, "hV%d_FCal_eta_raw_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_FCal_eta_raw[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_eta_res_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_FCal_eta_res[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_eta_raw_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_FCal_eta_raw_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_eta_res_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_FCal_eta_res_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_eta_raw_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_FCal_eta_raw_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_eta_res_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_FCal_eta_res_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  /*
+	  sprintf(name, "hV%dS_FCal_eta_raw_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_FCal_eta_raw[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_eta_res_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_FCal_eta_res[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_eta_raw_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_FCal_eta_raw_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_eta_res_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_FCal_eta_res_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_eta_raw_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_FCal_eta_raw_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_eta_res_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_FCal_eta_res_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  */
+	}
+      }
+    }
+  }
+  
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	for (int ieta=0; ieta<NETA+2; ieta++) {
+	  sprintf(name, "hV%d_FCal_pt_raw_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_FCal_pt_raw[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_FCal_pt_res_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_FCal_pt_res[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_pt_raw_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVn_FCal_pt_raw_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_pt_res_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVn_FCal_pt_res_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_pt_raw_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_FCal_pt_raw_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_FCal_pt_res_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_FCal_pt_res_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  /*
+	  sprintf(name, "hV%dS_FCal_pt_raw_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_FCal_pt_raw[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_FCal_pt_res_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_FCal_pt_res[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_pt_raw_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVnS_FCal_pt_raw_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_pt_res_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVnS_FCal_pt_res_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_pt_raw_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_FCal_pt_raw_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_FCal_pt_res_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_FCal_pt_res_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  */
+	}
+      }
+    }
+  }
+  /*
+  for (int iside=0; iside<NSIDE+1; iside++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+      for (int ipt=0; ipt<NPT+1; ipt++) {
+	for (int ieta=0; ieta<NETA+2; ieta++) {
+	  if (ipt==NPT && ieta >= NETA) continue;
+	  sprintf(name, "hV%d_FCal_cent_raw_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_FCal_cent_raw[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_FCal_cent_res_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_FCal_cent_res[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_cent_raw_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVn_FCal_cent_raw_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_cent_res_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVn_FCal_cent_res_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_FCal_cent_raw_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_FCal_cent_raw_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_FCal_cent_res_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_FCal_cent_res_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+
+	  sprintf(name, "hV%dS_FCal_cent_raw_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_FCal_cent_raw[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_FCal_cent_res_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_FCal_cent_res[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_cent_raw_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVnS_FCal_cent_raw_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_cent_res_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVnS_FCal_cent_res_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_FCal_cent_raw_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_FCal_cent_raw_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_FCal_cent_res_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_FCal_cent_res_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	}
+      }
+    }
+  }
+  */
+  //For Zdc
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	for (int ipt=0; ipt<NPT+1; ipt++) {
+	  sprintf(name, "hV%d_Zdc_eta_raw_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_Zdc_eta_raw[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_eta_res_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_Zdc_eta_res[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_eta_raw_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_Zdc_eta_raw_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_eta_res_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_Zdc_eta_res_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_eta_raw_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_Zdc_eta_raw_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_eta_res_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVn_Zdc_eta_res_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  /*
+	  sprintf(name, "hV%dS_Zdc_eta_raw_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_Zdc_eta_raw[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_eta_res_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_Zdc_eta_res[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_eta_raw_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_Zdc_eta_raw_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_eta_res_fg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_Zdc_eta_res_fg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_eta_raw_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_Zdc_eta_raw_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_eta_res_bg_cent%d_side%d_pt%d", ihar+1, icent, iside, ipt);
+	  hVnS_Zdc_eta_res_bg[icent][iside][ihar][ipt]=(TH1D*)fin->Get(name);
+	  */
+	}
+      }
+    }
+  }
+  
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int iside=0; iside<NSIDE+1; iside++) {
+      for (int ihar=0; ihar<NHAR; ihar++) {
+	for (int ieta=0; ieta<NETA+2; ieta++) {
+	  sprintf(name, "hV%d_Zdc_pt_raw_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_Zdc_pt_raw[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_Zdc_pt_res_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_Zdc_pt_res[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_pt_raw_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVn_Zdc_pt_raw_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_pt_res_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVn_Zdc_pt_res_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_pt_raw_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_Zdc_pt_raw_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_Zdc_pt_res_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVn_Zdc_pt_res_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  /*
+	  sprintf(name, "hV%dS_Zdc_pt_raw_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_Zdc_pt_raw[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_Zdc_pt_res_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_Zdc_pt_res[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_pt_raw_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVnS_Zdc_pt_raw_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_pt_res_fg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+	  hVnS_Zdc_pt_res_fg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_pt_raw_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_Zdc_pt_raw_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_Zdc_pt_res_bg_cent%d_side%d_eta%d", ihar+1, icent, iside, ieta);
+          hVnS_Zdc_pt_res_bg[icent][iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	  */
+	}
+      }
+    }
+  }
+
+  for (int iside=0; iside<NSIDE+1; iside++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+      for (int ieta=0; ieta<NETA+2; ieta++) {
+	sprintf(name, "hV%d_Zdc_pt_raw_allCent_side%d_eta%d", ihar+1,  iside, ieta);
+	hVn_Zdc_pt_raw_allCent[iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	sprintf(name, "hV%d_Zdc_pt_res_allCent_side%d_eta%d", ihar+1,  iside, ieta);
+	hVn_Zdc_pt_res_allCent[iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	sprintf(name, "hV%d_Zdc_pt_raw_allCent_fg_side%d_eta%d", ihar+1,  iside, ieta);
+	hVn_Zdc_pt_raw_allCent_fg[iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	sprintf(name, "hV%d_Zdc_pt_res_allCent_fg_side%d_eta%d", ihar+1,  iside, ieta);
+	hVn_Zdc_pt_res_allCent_fg[iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	sprintf(name, "hV%d_Zdc_pt_raw_allCent_bg_side%d_eta%d", ihar+1,  iside, ieta);
+	hVn_Zdc_pt_raw_allCent_bg[iside][ihar][ieta]=(TH1D*)fin->Get(name);
+	sprintf(name, "hV%d_Zdc_pt_res_allCent_bg_side%d_eta%d", ihar+1,  iside, ieta);
+	hVn_Zdc_pt_res_allCent_bg[iside][ihar][ieta]=(TH1D*)fin->Get(name);
+      }
+    }
+  }
+
+  /*
+  for (int iside=0; iside<NSIDE+1; iside++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+      for (int ipt=0; ipt<NPT+1; ipt++) {
+	for (int ieta=0; ieta<NETA+2; ieta++) {
+	  //if (ipt==NPT && ieta >= NETA) continue;
+	  sprintf(name, "hV%d_Zdc_cent_raw_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_Zdc_cent_raw[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_Zdc_cent_res_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_Zdc_cent_res[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_cent_raw_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVn_Zdc_cent_raw_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_cent_res_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVn_Zdc_cent_res_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%d_Zdc_cent_raw_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_Zdc_cent_raw_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%d_Zdc_cent_res_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVn_Zdc_cent_res_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+
+	  sprintf(name, "hV%dS_Zdc_cent_raw_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_Zdc_cent_raw[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_Zdc_cent_res_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_Zdc_cent_res[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_cent_raw_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVnS_Zdc_cent_raw_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_cent_res_fg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+	  hVnS_Zdc_cent_res_fg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+	  sprintf(name, "hV%dS_Zdc_cent_raw_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_Zdc_cent_raw_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+          sprintf(name, "hV%dS_Zdc_cent_res_bg_side%d_pt%d_eta%d", ihar+1, iside, ipt, ieta);
+          hVnS_Zdc_cent_res_bg[iside][ihar][ipt][ieta]=(TH1D*)fin->Get(name);
+
+	}
+      }
+    }
+  }
+*/
+  //Find v1_odd and v1_even
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+      for (int ieta=0; ieta<NETA+2; ieta++) {
+	//Raw
+	hVnEven_pt_raw[icent][ihar][ieta]=(TH1D*)hVn_Zdc_pt_raw[icent][0][ihar][ieta]->Clone();
+	hVnOdd_pt_raw[icent][ihar][ieta]=(TH1D*)hVn_Zdc_pt_raw[icent][0][ihar][ieta]->Clone();
+	FindEvenOdd(hVnEven_pt_raw[icent][ihar][ieta],hVnOdd_pt_raw[icent][ihar][ieta],hVn_Zdc_pt_raw[icent][0][ihar][ieta],hVn_Zdc_pt_raw[icent][1][ihar][ieta]);
+	sprintf(name, "hV%dEven_pt_raw_cent%d_eta%d", ihar+1, icent, ieta);	  
+	hVnEven_pt_raw[icent][ihar][ieta]->SetName(name);
+	sprintf(name, "hV%dOdd_pt_raw_cent%d_eta%d", ihar+1, icent, ieta);	  
+	hVnOdd_pt_raw[icent][ihar][ieta]->SetName(name);
+	//Resolution corrected
+	hVnEven_pt_res[icent][ihar][ieta]=(TH1D*)hVn_Zdc_pt_res[icent][0][ihar][ieta]->Clone();
+	hVnOdd_pt_res[icent][ihar][ieta]=(TH1D*)hVn_Zdc_pt_res[icent][0][ihar][ieta]->Clone();
+	FindEvenOdd(hVnEven_pt_res[icent][ihar][ieta],hVnOdd_pt_res[icent][ihar][ieta],hVn_Zdc_pt_res[icent][0][ihar][ieta],hVn_Zdc_pt_res[icent][1][ihar][ieta]);
+	sprintf(name, "hV%dEven_pt_res_cent%d_eta%d", ihar+1, icent, ieta);	  
+	hVnEven_pt_res[icent][ihar][ieta]->SetName(name);
+	sprintf(name, "hV%dOdd_pt_res_cent%d_eta%d", ihar+1, icent, ieta);	  
+	hVnOdd_pt_res[icent][ihar][ieta]->SetName(name);
+      }
+    }
+  }
+  
+  for (int icent=0; icent<NCENT; icent++) {
+    for (int ihar=0; ihar<NHAR; ihar++) {
+      for (int ipt=0; ipt<NPT+1; ipt++) {
+	//Raw
+	hVnEven_eta_raw[icent][ihar][ipt]=(TH1D*)hVn_Zdc_eta_raw[icent][0][ihar][ipt]->Clone();
+	hVnOdd_eta_raw[icent][ihar][ipt]=(TH1D*)hVn_Zdc_eta_raw[icent][0][ihar][ipt]->Clone();
+	FindEvenOdd(hVnEven_eta_raw[icent][ihar][ipt],hVnOdd_eta_raw[icent][ihar][ipt],hVn_Zdc_eta_raw[icent][0][ihar][ipt],hVn_Zdc_eta_raw[icent][1][ihar][ipt]);
+	sprintf(name, "hV%dEven_eta_raw_cent%d_eta%d", ihar+1, icent, ipt);	  
+	hVnEven_eta_raw[icent][ihar][ipt]->SetName(name);
+	sprintf(name, "hV%dOdd_eta_raw_cent%d_eta%d", ihar+1, icent, ipt);	  
+	hVnOdd_eta_raw[icent][ihar][ipt]->SetName(name);
+	//Resolution corrected
+	hVnEven_eta_res[icent][ihar][ipt]=(TH1D*)hVn_Zdc_eta_res[icent][0][ihar][ipt]->Clone();
+	hVnOdd_eta_res[icent][ihar][ipt]=(TH1D*)hVn_Zdc_eta_res[icent][0][ihar][ipt]->Clone();
+	FindEvenOdd(hVnEven_eta_res[icent][ihar][ipt],hVnOdd_eta_res[icent][ihar][ipt],hVn_Zdc_eta_res[icent][0][ihar][ipt],hVn_Zdc_eta_res[icent][1][ihar][ipt]);
+	sprintf(name, "hV%dEven_eta_res_cent%d_eta%d", ihar+1, icent, ipt);	  
+	hVnEven_eta_res[icent][ihar][ipt]->SetName(name);
+	sprintf(name, "hV%dOdd_eta_res_cent%d_eta%d", ihar+1, icent, ipt);	  
+	hVnOdd_eta_res[icent][ihar][ipt]->SetName(name);
+      }
+    }
+  }
+  /*
+  for (int ihar=0; ihar<NHAR; ihar++) {
+    for (int ipt=0; ipt<NPT+1; ipt++) {
+      for (int ieta=0; ieta<NETA+2; ieta++) {
+	//Raw
+	hVnEven_cent_raw[ihar][ipt][ieta]=(TH1D*)hVn_Zdc_cent_raw[0][ihar][ipt][ieta]->Clone();
+	hVnOdd_cent_raw[ihar][ipt][ieta]=(TH1D*)hVn_Zdc_cent_raw[0][ihar][ipt][ieta]->Clone();
+	FindEvenOdd(hVnEven_cent_raw[ihar][ipt][ieta],hVnOdd_cent_raw[ihar][ipt][ieta],hVn_Zdc_cent_raw[0][ihar][ipt][ieta],hVn_Zdc_cent_raw[1][ihar][ipt][ieta]);
+	sprintf(name, "hV%dEven_cent_raw_pt%d_eta%d", ihar+1, ipt,ieta);	  
+	hVnEven_cent_raw[ihar][ipt][ieta]->SetName(name);
+	sprintf(name, "hV%dOdd_cent_raw_pt%d_eta%d", ihar+1, ipt,ieta);	  
+	hVnOdd_cent_raw[ihar][ipt][ieta]->SetName(name);
+	//Resolution corrected
+	hVnEven_cent_res[ihar][ipt][ieta]=(TH1D*)hVn_Zdc_cent_res[0][ihar][ipt][ieta]->Clone();
+	hVnOdd_cent_res[ihar][ipt][ieta]=(TH1D*)hVn_Zdc_cent_res[0][ihar][ipt][ieta]->Clone();
+	FindEvenOdd(hVnEven_cent_res[ihar][ipt][ieta],hVnOdd_cent_res[ihar][ipt][ieta],hVn_Zdc_cent_res[0][ihar][ipt][ieta],hVn_Zdc_cent_res[1][ihar][ipt][ieta]);
+	sprintf(name, "hV%dEven_cent_res_pt%d_eta%d", ihar+1, ipt,ieta);	  
+	hVnEven_cent_res[ihar][ipt][ieta]->SetName(name);
+	sprintf(name, "hV%dOdd_cent_res_pt%d_eta%d", ihar+1, ipt,ieta);	  
+	hVnOdd_cent_res[ihar][ipt][ieta]->SetName(name);
+      }
+    }
+  }
+  */
+  /*
+  //For 10-80% Centrality
+  for (int ihar=0; ihar<NHAR; ihar++) {
+    for (int ieta=0; ieta<NETA+2; ieta++) {
+      //Raw
+      hVnEven_pt_raw_allCent[ihar][ieta]=(TH1D*)hVn_Zdc_pt_raw_allCent[0][ihar][ieta]->Clone();
+      hVnOdd_pt_raw_allCent[ihar][ieta]=(TH1D*)hVn_Zdc_pt_raw_allCent[0][ihar][ieta]->Clone();
+      FindEvenOdd(hVnEven_pt_raw_allCent[ihar][ieta],hVnOdd_pt_raw_allCent[ihar][ieta],hVn_Zdc_pt_raw_allCent[0][ihar][ieta],hVn_Zdc_pt_raw_allCent[1][ihar][ieta]);
+      sprintf(name, "hV%dEven_pt_raw_allCent_eta%d", ihar+1,  ieta);	  
+      hVnEven_pt_raw_allCent[ihar][ieta]->SetName(name);
+      sprintf(name, "hV%dOdd_pt_raw_allCent_eta%d", ihar+1,  ieta);	  
+      hVnOdd_pt_raw_allCent[ihar][ieta]->SetName(name);
+      //Resolution corrected
+      hVnEven_pt_res_allCent[ihar][ieta]=(TH1D*)hVn_Zdc_pt_res_allCent[0][ihar][ieta]->Clone();
+      hVnOdd_pt_res_allCent[ihar][ieta]=(TH1D*)hVn_Zdc_pt_res_allCent[0][ihar][ieta]->Clone();
+      FindEvenOdd(hVnEven_pt_res_allCent[ihar][ieta],hVnOdd_pt_res_allCent[ihar][ieta],hVn_Zdc_pt_res_allCent[0][ihar][ieta],hVn_Zdc_pt_res_allCent[1][ihar][ieta]);
+      sprintf(name, "hV%dEven_pt_res_allCent_eta%d", ihar+1,  ieta);	  
+      hVnEven_pt_res_allCent[ihar][ieta]->SetName(name);
+      sprintf(name, "hV%dOdd_pt_res_allCent_eta%d", ihar+1,  ieta);	  
+      hVnOdd_pt_res_allCent[ihar][ieta]->SetName(name);
+    }
+  }
+  */
+  /*
+  //Read Scalar product hists
+  //Mean pt and eta distributions
+  for(int icent=0;icent<NCENT;icent++){
+    for(int ich=0;ich<NCH+1;ich++){
+      for(int iside=0;iside<NSIDE+1;iside++){
+        sprintf(name,"hMean_pt_cent%d_ch%d_side%d",icent,ich,iside);
+        hMean_pt[icent][ich][iside]=(TProfile*)fin2->Get(name);
+        sprintf(name,"hMean_eta_cent%d_ch%d_side%d",icent,ich,iside);
+        hMean_eta[icent][ich][iside]=(TProfile*)fin2->Get(name);
+      }
+    }
+  }
+  //2PC Correlation hists
+  for(int icent=0;icent<NCENT;icent++){
+    for(int iside=0;iside<NSIDE+1;iside++){
+      for(int ihar=0;ihar<NHAR;ihar++){
+        //FCal
+        sprintf(name,"hVn_FCal_pt_fg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_FCal_pt_fg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+        sprintf(name,"hVn_FCal_eta_fg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_FCal_eta_fg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+
+        sprintf(name,"hVn_FCal_pt_bg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_FCal_pt_bg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+        sprintf(name,"hVn_FCal_eta_bg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_FCal_eta_bg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+
+        //Zdc
+        sprintf(name,"hVn_Zdc_pt_fg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_Zdc_pt_fg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+        sprintf(name,"hVn_Zdc_eta_fg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_Zdc_eta_fg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+
+        sprintf(name,"hVn_Zdc_pt_bg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_Zdc_pt_bg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+        sprintf(name,"hVn_Zdc_eta_bg_cent%d_side%d_har%d",icent,iside,ihar);
+        hVn_Zdc_eta_bg[icent][iside][ihar]=(TProfile*)fin2->Get(name);
+      }
+    }
+  }
+  */
+  gStyle->SetOptStat(0);
+
+  text.SetNDC(1);
+  text.SetTextFont(43);
+  text.SetTextSize(18);
+}
+
+void plot::write_allCent(){
+  /*
+  TFile *fout=new TFile("allCent.root","recreate");
+  fout->cd();
+  for (int ihar=0; ihar<NHAR; ihar++) {
+    for (int ieta=0; ieta<NETA+2; ieta++) {
+      hVnEven_pt_raw_allCent[ihar][ieta]->Write();
+      hVnOdd_pt_raw_allCent[ihar][ieta]->Write();
+      hVnEven_pt_res_allCent[ihar][ieta]->Write();
+      hVnOdd_pt_res_allCent[ihar][ieta]->Write();
+      for (int iside=0; iside<NSIDE+1; iside++) {
+	hVn_Zdc_pt_raw_allCent[iside][ihar][ieta]->Write();
+	hVn_Zdc_pt_res_allCent[iside][ihar][ieta]->Write();
+      }
+      for (int ipt=0; ipt<NPT+1; ipt++) {
+	hVnEven_cent_raw[ihar][ipt][ieta]->Write();
+	hVnOdd_cent_raw[ihar][ipt][ieta]->Write();
+	hVnEven_cent_res[ihar][ipt][ieta]->Write();
+	hVnOdd_cent_res[ihar][ipt][ieta]->Write();
+      }
+    }
+  }
+  fout->Close();
+  */
+}
+
+void plot::Divide_Pad(TCanvas *c,TPad *p[],int nrow,int ncol){
+  int N=nrow*ncol;
+  double xmin,ymin,xmax,ymax;
+  xmin=0.0,ymin=0.0;
+  xmax=1.-0.0,ymax=1.-0.0;
+  double dx,dy,xw,yw,xw1,yw1,xwn,ywn;
+  dx=0.1,dy=0.1;
+  xw=(1.-xmin)/ncol;
+  yw=(1.-ymin)/nrow;
+  double MX_min[10][10],MX_max[10][10];
+  double MY_min[10][10],MY_max[10][10];
+  for(int icol=0;icol<ncol;icol++){
+    for(int irow=nrow-1;irow>=0;irow--){
+      xw1=xmax/ncol+0.025;
+      yw1=ymax/nrow+0.034;
+      xw=(xmax-xw1)/(ncol-1);
+      yw=(ymax-yw1)/(nrow-1);
+      xwn=xw;//xmax/ncol+0.01;
+      ywn=yw;//ymax/nrow+0.01;
+      xwn=xw+0.005;
+      ywn=yw+0.015;
+      xw=(xmax-xw1-xwn)/(ncol-2);
+      yw=(ymax-yw1-ywn)/(nrow-2);
+      
+      if(icol==0){
+	MX_min[irow][icol]=xmin;
+	MX_max[irow][icol]=xmin+xw1;
+      }
+      if(icol>0 && icol!=ncol-1){
+	MX_min[irow][icol]=xmin+xw1+(icol-1)*xw;
+        MX_max[irow][icol]=xmin+xw1+(icol)*xw;
+      }
+      if(icol==ncol-1){
+        MX_min[irow][icol]=MX_max[irow][icol-1];//xmin+xw1+(icol-1)*xw;
+        MX_max[irow][icol]=xmax;
+      }
+
+      if(irow==nrow-1){
+        MY_min[irow][icol]=ymin;
+        MY_max[irow][icol]=ymin+yw1;
+      }
+      if(irow!=nrow-1 && irow!=0){
+	MY_min[irow][icol]=ymin+yw1+(nrow-2-irow)*yw;
+        MY_max[irow][icol]=ymin+yw1+(nrow-2-irow+1)*yw;
+      }
+      if(irow==0){
+	MY_min[irow][icol]=MY_max[irow+1][icol];//ymin+yw1+(nrow-2-irow)*yw;
+	MY_max[irow][icol]=ymax;
+      }
+    }
+  }
+        
+  int cnt=0;
+  for(int irow=0;irow<nrow;irow++){
+    for(int icol=0;icol<ncol;icol++){
+      sprintf(name,"p_%d",cnt);
+      //cout<<MX_min[irow][icol]<<",\t"<<MX_max[irow][icol]<<",\t"<<MY_min[irow][icol]<<",\t"<<MY_max[irow][icol]<<endl;
+      
+      p[cnt]=new TPad(name,name,MX_min[irow][icol],MY_min[irow][icol],MX_max[irow][icol],MY_max[irow][icol]);
+      c->cd();
+      p[cnt]->SetRightMargin(0);
+      p[cnt]->SetLeftMargin(0);
+      p[cnt]->SetTopMargin(0);
+      p[cnt]->SetBottomMargin(0);
+      if(icol==0) p[cnt]->SetLeftMargin(0.17);
+      if(icol==ncol-1) p[cnt]->SetRightMargin(0.05);
+      if(irow==0)	p[cnt]->SetTopMargin(0.1);
+      if(irow==nrow-1) p[cnt]->SetBottomMargin(0.2);
+      p[cnt]->SetTicks(1,1);
+      p[cnt]->Draw();
+      cnt++;
+      
+    }
+  }
+  
+}
+
+void plot::FindEvenOdd(TH1D *hEven,TH1D *hOdd,TH1D *h1,TH1D *h2){
+  //hEven=(TH1D*)h1->Clone();
+  //hOdd=(TH1D*)h2->Clone();
+  hEven->Reset();
+  hOdd->Reset();
+  int N=h1->GetNbinsX();
+  double y1,y2,dy1,dy2,yE,yO,dyE,dyO;
+  for(int i=0;i<N;i++){
+    y1=h1->GetBinContent(i+1);
+    y2=h2->GetBinContent(i+1);
+    dy1=h1->GetBinError(i+1);
+    dy2=h2->GetBinError(i+1);
+    double sq2=1.;
+    //sq2=sqrt(2.);
+    yE=-(1./(2.*sq2)) * (y1+y2);
+    yO=(1./(2.*sq2)) * (y1-y2);
+    dyE=(1./(2.*sq2)) * sqrt(dy1*dy1+dy2*dy2);
+    dyO=(1./(2.*sq2)) * sqrt(dy1*dy1+dy2*dy2);
+    hEven->SetBinContent(i+1,yE);
+    hEven->SetBinError(i+1,dyE);
+    hOdd->SetBinContent(i+1,yO);
+    hOdd->SetBinError(i+1,dyO);
+  }
+}
+

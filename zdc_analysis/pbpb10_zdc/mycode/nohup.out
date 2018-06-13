@@ -1,0 +1,92 @@
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000001.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000002.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000003.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000004.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000005.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000006.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000007.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000008.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000009.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000010.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000011.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000012.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000013.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000014.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000015.PDST.root
+/Users/arabinda/StonyBrook/zdc_v1/output_DS/user.arbehera.pDST.28Aug2016.169927_PDST.root/user.arbehera.12697999._000016.PDST.root
+
+NPT       = 10: diffPtBins :: {0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 7, 9, 12, }
+NDIFFETA  = 12: diffEtaBins:: {-2.5, -2, -1.5, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 1.5, 2, 2.5, }
+In FillCalib::  event 0
+In FillCalib::  event 100000
+In FillCalib::  event 200000
+In FillCalib::  event 300000
+In FillCalib::  event 400000
+In FillCalib::  event 500000
+In FillCalib::  event 600000
+In FillCalib::  event 700000
+In FillCalib::  event 800000
+In FillCalib::  event 900000
+In FillCalib::  event 1000000
+In FillCalib::  event 1100000
+In FillCalib::  event 1200000
+In FillCalib::  event 1300000
+In FillCalib::  event 1400000
+In FillCalib::  event 1500000
+In FillCalib::  event 1600000
+In FillCalib::  event 1700000
+In FillCalib::  event 1800000
+In FillCalib::  event 1900000
+In FillCalib::  event 2000000
+In FillCalib::  event 2100000
+In FillCalib::  event 2200000
+QxMax = 428.375: QyMax = 314.626: QwMax = 818
+In FillFlattening:: event 0
+In FillFlattening:: event 100000
+In FillFlattening:: event 200000
+In FillFlattening:: event 300000
+In FillFlattening:: event 400000
+In FillFlattening:: event 500000
+In FillFlattening:: event 600000
+In FillFlattening:: event 700000
+In FillFlattening:: event 800000
+In FillFlattening:: event 900000
+In FillFlattening:: event 1000000
+In FillFlattening:: event 1100000
+In FillFlattening:: event 1200000
+In FillFlattening:: event 1300000
+In FillFlattening:: event 1400000
+In FillFlattening:: event 1500000
+In FillFlattening:: event 1600000
+In FillFlattening:: event 1700000
+In FillFlattening:: event 1800000
+In FillFlattening:: event 1900000
+In FillFlattening:: event 2000000
+In FillFlattening:: event 2100000
+In FillFlattening:: event 2200000
+running event 0
+running event 100000
+running event 200000
+running event 300000
+running event 400000
+running event 500000
+running event 600000
+running event 700000
+running event 800000
+running event 900000
+running event 1000000
+running event 1100000
+running event 1200000
+running event 1300000
+running event 1400000
+running event 1500000
+running event 1600000
+running event 1700000
+running event 1800000
+running event 1900000
+running event 2000000
+running event 2100000
+running event 2200000
+Saving
+Saving Finished
+ total events: 4543276
