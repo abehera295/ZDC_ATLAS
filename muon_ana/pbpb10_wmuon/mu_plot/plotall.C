@@ -1,0 +1,147 @@
+#define plot_cxx
+#include "./plot.h"
+#include "./plot1_mu.C"
+#include "./plot2_fit.C"
+
+
+void plotall(){
+  plot *a=new plot();
+  a->init();
+  //a->plot1_mu();
+  a->plot2_fit();
+}
+
+
+plot::plot(){
+}
+
+void plot::init(){
+  fin=new TFile("../zdcvn/Output_mu.root");
+  //Muon Track hists
+  hMu_n_raw=(TH1D*)fin->Get("hMu_n_raw");
+  hMu_pt_raw=(TH1D*)fin->Get("hMu_pt_raw");
+  hMu_phi_raw=(TH1D*)fin->Get("hMu_phi_raw");
+  hMu_eta_raw=(TH1D*)fin->Get("hMu_eta_raw");
+  hMu_eloss_all_raw=(TH1D*)fin->Get("hMu_eloss_all_raw");
+  hMu_ms_phi_raw=(TH1D*)fin->Get("hMu_ms_phi_raw");
+  hMu_ms_theta_raw=(TH1D*)fin->Get("hMu_ms_theta_raw");
+  hMu_ms_qoverp_raw=(TH1D*)fin->Get("hMu_ms_qoverp_raw");
+
+  hMu_n=(TH1D*)fin->Get("hMu_n");
+  hMu_pt=(TH1D*)fin->Get("hMu_pt");
+  hMu_phi=(TH1D*)fin->Get("hMu_phi");
+  hMu_eta=(TH1D*)fin->Get("hMu_eta");
+  hMu_eloss_all=(TH1D*)fin->Get("hMu_eloss_all");
+  hMu_ms_phi=(TH1D*)fin->Get("hMu_ms_phi");
+  hMu_ms_theta=(TH1D*)fin->Get("hMu_ms_theta");
+  hMu_ms_qoverp=(TH1D*)fin->Get("hMu_ms_qoverp");
+
+  //Muon hists
+  for(int icent=0;icent<NCENT;icent++){
+    for (int iside=0; iside<NSIDE+1; iside++){
+      for (int ihar=0; ihar<NHAR; ihar++){
+	for(int ipt=0;ipt<NPT_Mu;ipt++){
+          //Yield for n(\phi-\Psi)
+          sprintf(name,"hMu_dphi_yield_FCal_cent%d_side%d_pt%d_har%d",icent,iside,ipt,ihar);
+          hMu_dphi_yield_FCal[icent][iside][ipt][ihar]=(TH1D*)fin->Get(name);
+          //Momentum Imbalance for n(\phi-\Psi)
+          sprintf(name,"hMu_dphi_eloss_FCal_cent%d_side%d_pt%d_har%d",icent,iside,ipt,ihar);
+          hMu_dphi_eloss_FCal[icent][iside][ipt][ihar]=(TH2F*)fin->Get(name);
+	}
+	for(int ieta=0;ieta<NETA_Mu;ieta++){
+	  //Yield for n(\phi-\Psi)
+	  sprintf(name,"hMu_dphi_yield_Zdc_cent%d_side%d_eta%d_har%d",icent,iside,ieta,ihar);
+          hMu_dphi_yield_Zdc[icent][iside][ieta][ihar]=(TH1D*)fin->Get(name);
+	  //Momentum Imbalance for n(\phi-\Psi)
+	  sprintf(name,"hMu_dphi_eloss_Zdc_cent%d_side%d_eta%d_har%d",icent,iside,ieta,ihar);
+          hMu_dphi_eloss_Zdc[icent][iside][ieta][ihar]=(TH2F*)fin->Get(name);
+        }
+      }
+    }
+  }
+
+  gStyle->SetOptStat(0);
+
+  text.SetNDC(1);
+  text.SetTextFont(43);
+  text.SetTextSize(18);
+}
+
+
+void plot::Divide_Pad(TCanvas *c,TPad *p[],int nrow,int ncol){
+  int N=nrow*ncol;
+  double xmin,ymin,xmax,ymax;
+  xmin=0.0,ymin=0.0;
+  xmax=1.-0.0,ymax=1.-0.0;
+  double dx,dy,xw,yw,xw1,yw1,xwn,ywn;
+  dx=0.1,dy=0.1;
+  xw=(1.-xmin)/ncol;
+  yw=(1.-ymin)/nrow;
+  double MX_min[10][10],MX_max[10][10];
+  double MY_min[10][10],MY_max[10][10];
+  for(int icol=0;icol<ncol;icol++){
+    for(int irow=nrow-1;irow>=0;irow--){
+      xw1=xmax/ncol+0.025;
+      yw1=ymax/nrow+0.034;
+      xw=(xmax-xw1)/(ncol-1);
+      yw=(ymax-yw1)/(nrow-1);
+      xwn=xw;//xmax/ncol+0.01;
+      ywn=yw;//ymax/nrow+0.01;
+      xwn=xw+0.005;
+      ywn=yw+0.015;
+      xw=(xmax-xw1-xwn)/(ncol-2);
+      yw=(ymax-yw1-ywn)/(nrow-2);
+
+      if(icol==0){
+        MX_min[irow][icol]=xmin;
+        MX_max[irow][icol]=xmin+xw1;
+      }
+      if(icol>0 && icol!=ncol-1){
+        MX_min[irow][icol]=xmin+xw1+(icol-1)*xw;
+        MX_max[irow][icol]=xmin+xw1+(icol)*xw;
+      }
+      if(icol==ncol-1){
+        MX_min[irow][icol]=MX_max[irow][icol-1];//xmin+xw1+(icol-1)*xw;
+        MX_max[irow][icol]=xmax;
+      }
+
+      if(irow==nrow-1){
+        MY_min[irow][icol]=ymin;
+        MY_max[irow][icol]=ymin+yw1;
+      }
+      if(irow!=nrow-1 && irow!=0){
+        MY_min[irow][icol]=ymin+yw1+(nrow-2-irow)*yw;
+        MY_max[irow][icol]=ymin+yw1+(nrow-2-irow+1)*yw;
+      }
+      if(irow==0){
+        MY_min[irow][icol]=MY_max[irow+1][icol];//ymin+yw1+(nrow-2-irow)*yw;
+        MY_max[irow][icol]=ymax;
+      }
+    }
+  }
+
+  int cnt=0;
+  for(int irow=0;irow<nrow;irow++){
+    for(int icol=0;icol<ncol;icol++){
+      sprintf(name,"p_%d",cnt);
+      //cout<<MX_min[irow][icol]<<",\t"<<MX_max[irow][icol]<<",\t"<<MY_min[irow][icol]<<",\t"<<MY_max[irow][icol\
+]<<endl;
+
+      p[cnt]=new TPad(name,name,MX_min[irow][icol],MY_min[irow][icol],MX_max[irow][icol],MY_max[irow][icol]);
+      c->cd();
+      p[cnt]->SetRightMargin(0);
+      p[cnt]->SetLeftMargin(0);
+      p[cnt]->SetTopMargin(0);
+      p[cnt]->SetBottomMargin(0);
+      if(icol==0) p[cnt]->SetLeftMargin(0.17);
+      if(icol==ncol-1) p[cnt]->SetRightMargin(0.05);
+      if(irow==0)       p[cnt]->SetTopMargin(0.1);
+      if(irow==nrow-1) p[cnt]->SetBottomMargin(0.2);
+      p[cnt]->SetTicks(1,1);
+      p[cnt]->Draw();
+      cnt++;
+
+    }
+  }
+
+}

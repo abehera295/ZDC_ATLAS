@@ -1,0 +1,125 @@
+#!/usr/bin/python
+
+from os import system as sys
+'''
+print "Enter choice : 1 for WithWeight or 2 for NoWeight -"
+choice0=input()
+if (choice0==1): 
+    dirin="./output_withweight/histoutput"
+if (choice0==2): 
+    dirin="./output_noweight/histoutput"
+
+print "Enter choice : 1 for Minbias or 2 for Central -"
+choice1=input()
+if (choice1==1):
+    dirout="histout_all_minbias.list"
+    Ndiv=10
+    totalfiles=13
+if (choice1==2):
+    dirout="histout_all_central.list"
+    Ndiv=10
+'''
+dirin="./out"
+dirout="hadd_list.list"
+#Ndiv=50
+totalfiles=10
+
+print "Enter choice : 1 for adding raw histograms or 2 for adding already added histograms"
+choice2=input()
+
+if(choice2==1):
+    #sys("rm ./%s") %(dirout)
+    sys("ls %s/*.root > %s" %(dirin,dirout))
+
+    f=open(dirout,"r")
+    
+    files=[]
+    for line in f:
+        files.append(line)
+    Ndiv=int(len(files)/totalfiles)+1
+    cmF=[]
+    cm1="hadd "
+    source=" "
+    target=[]
+    cnt=1
+    cnt2=0
+    print len(files)
+
+    for i in range(0,len(files)):
+        line=files[i]
+        thisline=line.split(".root")
+        #if(thisline[0]=="out_6_7_10"): continue
+        source=source+thisline[0]+".root "
+        if(cnt%Ndiv==0 or cnt==len(files)):
+            target.append("tempout_%d.root" %(cnt2+1))
+            cm2=cm1+target[cnt2]+source
+            cmF.append(cm2)
+            source=" "
+            cnt2+=1
+        cnt+=1
+
+    #print cmF[0]
+
+    #do the condor stuff
+    cnt=0
+    for line in cmF:
+        #sys("rm ./output/output_%d" %(nhar,ncent))
+        sys("rm -rf ./log2/log_%d" %(cnt))
+        print "We now delete log"
+        sys("mkdir ./log2/log_%d" %(cnt))
+        Logfile="./log2/log_%d" %(cnt)
+        Filenm01="%s/FBasy_%d.job" %(Logfile,cnt)
+        Filenm02="%s/FBasy_%d.sh" %(Logfile,cnt)
+    
+        sys("cp ~/condor_script4 %s" %Filenm01)
+        sys("echo \"Output          = %s/Corrjob.out\">>%s" %(Logfile,Filenm01) )
+        sys("echo \"Error           = %s/Corrjob.err\">>%s" %(Logfile,Filenm01) )
+        sys("echo \"Log             = %s/Corrjob.log\">>%s" %(Logfile,Filenm01) )
+        sys("echo \"Executable      = %s\">>%s" %(Filenm02,Filenm01) )
+        sys("echo \"Queue\"                        >>%s" %Filenm01)
+    
+        sys("echo \"#!/bin/sh    \">%s" %Filenm02)
+        sys("echo 'echo $0'>>%s" %Filenm02)
+        sys("echo \"%s > %s/job.out\">>%s" %(line,Logfile,Filenm02) )
+        sys("echo \"rm %s\">>%s" %(Filenm01,Filenm02))
+        sys("echo \"rm %s\">>%s" %(Filenm02,Filenm02))
+
+        sys("chmod 711 %s" %Filenm02)
+        sys("condor_submit %s" %Filenm01) 
+        cnt+=1
+
+    print "All jobs submitted : %d" %cnt
+
+
+if(choice2==2):
+    #print "Enter total number of files to be added :"
+    #totalfiles=input()
+    sys("rm Output.root")
+    cmmnd="hadd "
+    target="Output.root"
+    cmmnd=cmmnd+target
+    for i in range(1,totalfiles+1):
+        cm2="tempout_%d.root" %i
+        cmmnd=cmmnd+" "+cm2
+
+    sys("nohup %s > nohup.out &" %cmmnd)
+'''
+    if(choice0==1):
+        if(choice1==1):
+            target="histout_all_minbias_withweight.root"
+        if(choice1==2):
+            target="histout_all_central_withweight.root"
+    if(choice0==2):
+        if(choice1==1):
+            target="histout_all_minbias_noweight.root"
+        if(choice1==2):
+            target="histout_all_central_noweight.root"
+
+
+    cmmnd=cmmnd+target
+    for i in range(1,totalfiles):
+        cm2="tempout_%d.root" %i
+        cmmnd=cmmnd+" "+cm2
+    
+    sys("nohup %s > nohup.out &" %cmmnd)
+'''

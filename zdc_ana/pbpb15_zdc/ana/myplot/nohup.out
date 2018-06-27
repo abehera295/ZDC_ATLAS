@@ -1,0 +1,29 @@
+
+Processing plotall.C+...
+
+ *** Break *** segmentation violation
+ Generating stack trace...
+ 0x000000010adb1e0e in G__plotall_C_ACLiC_dict__0_2927(G__value*, char const*, G__param*, int) (in plotall_C.so) + 14
+ 0x000000010a00f9b1 in Cint::G__ExceptionWrapper(int (*)(G__value*, char const*, G__param*, int), G__value*, char*, G__param*, int) (in libCint.so) + 64
+ 0x000000010a09b574 in G__execute_call (in libCint.so) + 75
+ 0x000000010a09b99c in G__call_cppfunc (in libCint.so) + 808
+ 0x000000010a07b171 in G__interpret_func (in libCint.so) + 3402
+ 0x000000010a06b0ba in G__getfunction (in libCint.so) + 5730
+ 0x000000010a06121f in G__getitem (in libCint.so) + 530
+ 0x000000010a05cd22 in G__getexpr (in libCint.so) + 29713
+Failed to start process notifications for pid 88272 (19)
+ 0x000000010a0557f0 in G__calc_internal (in libCint.so) + 811
+Failed to start process notifications for pid 88272 (19)
+ 0x000000010a0cd691 in G__process_cmd (in libCint.so) + 15315
+Failed to start process notifications for pid 88272 (19)
+ 0x00000001099fda82 in TCint::ProcessLine(char const*, TInterpreter::EErrorCode*) (in libCore.so) + 764
+Failed to start process notifications for pid 88272 (19)
+ 0x00000001099fdd30 in TCint::ProcessLineSynch(char const*, TInterpreter::EErrorCode*) (in libCore.so) + 116
+Failed to start process notifications for pid 88272 (19)
+ 0x000000010997188f in TApplication::ExecuteFile(char const*, int*, bool) (in libCore.so) + 2281
+Failed to start process notifications for pid 88272 (19)
+ 0x000000010a6e2b9b in TRint::Run(bool) (in libRint.so) + 1065
+Failed to start process notifications for pid 88272 (19)
+ 0x0000000109963e5f in main (in root.exe) + 79
+Failed to start process notifications for pid 88272 (19)
+ 0x00007fff708a4015 in start (in libdyld.dylib) + 1

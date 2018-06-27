@@ -1,0 +1,8 @@
+
+root -b <<EOF
+.L plotall.C+g
+gSystem->Load("plotall_C.so")
+plot *a=new plot();
+a->init();
+a->plot1_mu();
+EOF

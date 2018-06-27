@@ -1,0 +1,46 @@
+#ifndef Tool_H_
+#define Tool_H_
+
+#include "Rule.h"
+
+const int nRuns = 33; // number of runs
+const int runs[nRuns] = { // run numbers
+  286665, 286711, 286717, 286748, 286767, 286834, 286854, 286908, 286990, 287038,
+  287044, 287068, 287222, 287224, 287259, 287270, 287281, 287321, 287330, 287334,
+  287378, 287380, 287382, 287560, 287594, 287632, 287706, 287728, 287827, 287843,
+  287866, 287924, 287931};
+// Flattening part borrowed from flow decorrelation analysis
+const int nZvtxFlat = 8; // number of zVtx bins for flattening
+const int nCentFlat = 14; // number of centrality bins for flattening
+const int nChgFlat = 2; // number of charge bins for flattening
+const int nPtFlat = 6; // number of pT bins for flattening, [5] merged with [6],[7],[8]
+const int nEtaFlat = 50; // number of track eta bins for flattening
+const int nPhiFlat = 64; // number of track phi bins for flattening
+
+class Tool
+{
+ private:
+  TH2D* hEtaPhi[nZvtxFlat][nCentFlat][nChgFlat][nPtFlat+3]; // eta phi map for flattening
+
+  // tracking efficiency and fake borrowed from Run 2 Pb+Pb flow analysis
+  TH3D* allTrue; // truth tracks
+  TH3D* allReco; // recon tracks
+  TH3D* matchedReco; // recon tracks that matched to truth
+  TH3D* unMatchedReco; // recon tracks that unmatched to truth
+
+  TH1D* hTrigMB; // FCal Et distribution from MinBias events
+  TH1D* hTrigAll; // FCal Et distribution from all events
+
+  TGraphErrors* gCvt_FCal_Cent; // fine conversion map between FCal Et and centrality
+
+ public:
+  Tool();
+  ~Tool();
+  double detTrigWght(double fcalEt); // determine the event weight from UCC triggers
+  double detTrkEff(double fcalEt, double pt, double eta); // determine tracking efficiency
+  double detTrkFak(double fcalEt, double pt, double eta); // determine fake rates
+  double detFlat(double zVtx, int cent, int tagChg, double pt, double eta, double phi); // determine flattening
+  double detCent(double fcalEt); // determine centrality
+};
+
+#endif
